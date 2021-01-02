@@ -1,0 +1,15 @@
+name: ensemble_transformer
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - jupyter
+  - jupyterlab
+  - numpy
+  - matplotlib
+  - pytorch
+  - torchvision
+  - cudatoolkit=11.0
+  - coverage
+  - python=3.8
+  - tqdm
