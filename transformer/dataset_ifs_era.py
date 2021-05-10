@@ -12,11 +12,12 @@
 
 # System modules
 import logging
-from typing import Union, Iterable, Any, Dict, Callable
+from typing import Union, Iterable, Tuple, Callable
 
 # External modules
 from torch.utils.data.dataset import Dataset
 import xarray as xr
+import numpy as np
 import torch
 
 # Internal modules
@@ -31,15 +32,17 @@ class IFSERADataset(Dataset):
             ifs_path: str,
             era_path: str,
             include_vars: Union[None, Iterable[str]],
-            transform: Union[None, Callable] = None
+            input_transform: Union[None, Callable] = None,
+            target_transform: Union[None, Callable] = None
     ):
         super().__init__()
         self.ifs_path = ifs_path
         self.era_path = era_path
         self.include_vars = include_vars
-        self.transform = transform
-        self.era5 = self.get_era5().load()
-        self.ifs = self.get_ifs().load()
+        self.input_transform = input_transform
+        self.target_transform = target_transform
+        self.era5 = self.get_era5()
+        self.ifs = self.get_ifs()
 
     def get_era5(self) -> xr.DataArray:
         return xr.open_zarr(self.era_path)['t2m']
@@ -56,15 +59,16 @@ class IFSERADataset(Dataset):
     def __len__(self) -> int:
         return len(self.era5)
 
-    def __getitem__(self, idx) -> Dict[str, Any]:
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
+    def __getitem__(
+            self,
+            idx: int
+    ) -> Tuple[Union[np.ndarray, torch.Tensor],
+               Union[np.ndarray, torch.Tensor]]:
+        ifs_tensor = self.ifs[idx].values
+        if self.input_transform:
+            ifs_tensor = ifs_tensor
 
-        sample = {
-            'era5': self.era5[idx].values,
-            'ifs': self.ifs[idx].values
-        }
-
-        if self.transform:
-            sample = self.transform(sample)
-        return sample
+        era_tensor = self.era5[idx].values
+        if self.target_transform:
+            era_tensor = era_tensor
+        return ifs_tensor, era_tensor
