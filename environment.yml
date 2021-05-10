@@ -12,4 +12,7 @@ dependencies:
   - cudatoolkit=11.0
   - coverage
   - python=3.8
+  - pip
   - tqdm
+  - pip:
+      - pytorch-lightning
