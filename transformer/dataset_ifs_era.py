@@ -31,7 +31,7 @@ class IFSERADataset(Dataset):
             self,
             ifs_path: str,
             era_path: str,
-            include_vars: Union[None, Iterable[str]],
+            include_vars: Union[None, Iterable[str]] = None,
             input_transform: Union[None, Callable] = None,
             target_transform: Union[None, Callable] = None
     ):
