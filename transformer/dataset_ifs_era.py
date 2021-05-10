@@ -1,0 +1,70 @@
+#!/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Created on 08.01.21
+#
+# Created for ensemble_transformer
+#
+# @author: Tobias Sebastian Finn, tobias.sebastian.finn@uni-hamburg.de
+#
+#    Copyright (C) {2021}  {Tobias Sebastian Finn}
+
+
+# System modules
+import logging
+from typing import Union, Iterable, Any, Dict, Callable
+
+# External modules
+from torch.utils.data.dataset import Dataset
+import xarray as xr
+import torch
+
+# Internal modules
+
+
+logger = logging.getLogger(__name__)
+
+
+class IFSERADataset(Dataset):
+    def __init__(
+            self,
+            ifs_path: str,
+            era_path: str,
+            include_vars: Union[None, Iterable[str]],
+            transform: Union[None, Callable] = None
+    ):
+        super().__init__()
+        self.ifs_path = ifs_path
+        self.era_path = era_path
+        self.include_vars = include_vars
+        self.transform = transform
+        self.era5 = self.get_era5().load()
+        self.ifs = self.get_ifs().load()
+
+    def get_era5(self) -> xr.DataArray:
+        return xr.open_zarr(self.era_path)['t2m']
+
+    def get_ifs(self) -> xr.DataArray:
+        ds_ifs = xr.open_zarr(self.ifs_path)
+        if self.include_vars is not None:
+            ds_ifs = ds_ifs[self.include_vars]
+        ds_ifs = ds_ifs.to_array('var_name')
+        ds_ifs = ds_ifs.transpose('time', 'ensemble', 'var_name', 'latitude',
+                                  'longitude')
+        return ds_ifs
+
+    def __len__(self) -> int:
+        return len(self.era5)
+
+    def __getitem__(self, idx) -> Dict[str, Any]:
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        sample = {
+            'era5': self.era5[idx].values,
+            'ifs': self.ifs[idx].values
+        }
+
+        if self.transform:
+            sample = self.transform(sample)
+        return sample
