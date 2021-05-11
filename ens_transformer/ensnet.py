@@ -50,7 +50,7 @@ class EnsNet(pl.LightningModule):
         super().__init__()
         self.learning_rate = learning_rate
         self.example_input_array = torch.randn(
-            1, in_channels, 32, 64
+            1, 50, in_channels, 32, 64
         )
         self.embedding = self._init_embedding(
             embedding_size=embedding_size,
