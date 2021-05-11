@@ -208,6 +208,10 @@ class BaseTransformer(torch.nn.Module):
         value = self.value_layer(value_base)
         key = self.key_layer(key_base)
         query = self.query_layer(query_base)
+        key = key.view(*key.shape[:-1], self.n_key_neurons,
+                       *self.local_grid_dims)
+        query = query.view(*query.shape[:-1], self.n_key_neurons,
+                           *self.local_grid_dims)
         return value, key, query
 
     def forward(
@@ -224,8 +228,6 @@ class BaseTransformer(torch.nn.Module):
             value_base=value_base, key_base=key_base, query_base=query_base
         )
         weights = self._get_weights(key=key, query=query)
-        weights = weights.view(*weights.shape[:-1], self.n_key_neurons,
-                               *self.local_grid_dims)
         weights = self.interpolate(weights)
         transformed = self._apply_weights(value, weights)
         return transformed
