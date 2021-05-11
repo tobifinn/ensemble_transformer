@@ -191,5 +191,6 @@ class BaseTransformer(torch.nn.Module):
             value_base=value_base, key_base=key_base, query_base=query_base
         )
         weights = self._get_weights(key=key, query=query)
+        weights = self.interpolate(weights)
         transformed = self._apply_weights(value, weights)
         return transformed
