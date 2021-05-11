@@ -198,13 +198,12 @@ class BaseTransformer(torch.nn.Module):
 
     def _apply_layers(
             self,
-            value_base: torch.Tensor,
-            key_base: torch.Tensor,
-            query_base: torch.Tensor
+            in_tensor: torch.Tensor,
+            embedding: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        value = self.value_layer(value_base)
-        key = self.key_layer(key_base)
-        query = self.query_layer(query_base)
+        value = self.value_layer(in_tensor)
+        key = self.key_layer(embedding)
+        query = self.query_layer(embedding)
         key = key.view(*key.shape[:-1], self.n_key_neurons,
                        *self.local_grid_dims)
         query = query.view(*query.shape[:-1], self.n_key_neurons,
@@ -213,16 +212,11 @@ class BaseTransformer(torch.nn.Module):
 
     def forward(
             self,
-            value_base: torch.Tensor,
-            key_base: Union[torch.Tensor, None] = None,
-            query_base: Union[torch.Tensor, None] = None
-    ):
-        if key_base is None:
-            key_base = value_base
-        if query_base is None:
-            query_base = value_base
+            in_tensor: torch.Tensor,
+            embedding: torch.Tensor
+    ) -> torch.Tensor:
         value, key, query = self._apply_layers(
-            value_base=value_base, key_base=key_base, query_base=query_base
+            in_tensor=in_tensor, embedding=embedding
         )
         weights = self._get_weights(key=key, query=query)
         weights = self.interpolate(weights)
