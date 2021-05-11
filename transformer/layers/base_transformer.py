@@ -48,7 +48,7 @@ __all__ = [
 
 class SELUKernel(torch.nn.SELU):
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        activated_tensor = super()(input_tensor)
+        activated_tensor = super().forward(input_tensor)
         activated_tensor = activated_tensor+1
         return activated_tensor
 
