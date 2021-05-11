@@ -35,7 +35,8 @@ class IFSERADataModule(pl.LightningDataModule):
             data_dir: str = '../data/processed',
             batch_size: int = 64,
             normalizer_path: Union[None, str] = None,
-            include_vars: Union[None, Iterable[str]] = None,
+            include_vars: Union[None, Iterable[str]] = ('t2m', 't_850',
+                                                        'gh_850'),
             num_workers: int = 4,
     ):
         super().__init__()
