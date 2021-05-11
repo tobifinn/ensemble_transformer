@@ -25,7 +25,7 @@
 
 # System modules
 import logging
-from typing import Union, Tuple
+from typing import Union, Tuple, Callable
 
 # External modules
 
@@ -60,22 +60,56 @@ def crps_loss(
     return crps
 
 
-class WeightedScore(object):
-    def __init__(self, base_score, lat):
+class WeightedScore(torch.nn.Module):
+    """
+    This weighted score wraps a given evaluation function to weight the score
+    in latitudinal directions.
+    The assumption is that the second last dimension represent the
+    latitudinal dimension.
+
+    Parameters
+    ----------
+    base_score : Callable
+        This base score function evaluates a given prediction and target and
+        output a non-rediced scored.
+    lats : numpy.ndarray
+        This array contains the latitudinal coordinates in degrees.
+    """
+    def __init__(
+            self,
+            base_score: Callable,
+            lats: np.ndarray
+    ):
+        super().__init__()
         self._weights = None
         self.base_score = base_score
-        self.lat = lat
+        self.weights = torch.nn.Parameter(
+            self.estimate_weights(lats), requires_grad=False
+        )
 
-    def get_weights(self, as_tensor):
-        if self._weights is None:
-            weights_lat = np.cos(np.deg2rad(self.lat.values))
-            weights_lat = weights_lat / weights_lat.mean()
-            self._weights = torch.from_numpy(weights_lat[:, None])
-        if self._weights.type() != as_tensor.type():
-            self._weights = self._weights.to(as_tensor)
-        return self._weights
+    @staticmethod
+    def estimate_weights(lats: np.ndarray) -> torch.Tensor:
+        """
+        This method estimates the weights based on set latitudinal coordinates.
+        After the first iteration, the weights are stored and simply returned if
+        the type was not diff_meanchanged.
 
-    def __call__(self, prediction, target):
-        non_reduced_score = self.base_score(prediction, target)
-        weighted_score = self.get_weights(non_reduced_score) * non_reduced_score
+        Parameters
+        ----------
+        lats : numpy.ndarray
+            This array contains the latitudinal coordinates in degrees.
+
+        Returns
+        -------
+        weights : torch.Tensor
+            The estimated weights.
+        """
+        weights = np.cos(np.deg2rad(lats))
+        weights = weights / weights.mean()
+        weights = torch.from_numpy(weights[:, None])
+        return weights
+
+    def forward(self, *args, **kwargs) -> torch.Tensor:
+        non_reduced_score = self.base_score(*args, **kwargs)
+        weighted_score = self.weights * non_reduced_score
         return weighted_score
