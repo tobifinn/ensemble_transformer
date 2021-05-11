@@ -93,13 +93,13 @@ class IFSERADataModule(pl.LightningDataModule):
     def val_dataloader(self) -> DataLoader:
         return DataLoader(
             dataset=self.ds_eval, pin_memory=True,
-            num_workers=self.num_workers, shuffle=True,
+            num_workers=self.num_workers,
             batch_size=self.batch_size
         )
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(
             dataset=self.ds_test, pin_memory=True,
-            num_workers=self.num_workers, shuffle=True,
+            num_workers=self.num_workers,
             batch_size=self.batch_size
         )
