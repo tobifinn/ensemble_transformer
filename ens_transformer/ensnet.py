@@ -37,7 +37,7 @@ class EnsNet(pl.LightningModule):
             in_channels: int = 3,
             learning_rate: float = 1E-3,
             n_transformers: int = 1,
-            transformer_name: str = 'ens',
+            transformer_name: str = 'ensemble',
             n_transform_channels: int = 64,
             value_activation: Union[None, str] = None,
             n_key_neurons: int = 1,
@@ -57,7 +57,6 @@ class EnsNet(pl.LightningModule):
             embedding_hidden=embedding_hidden
         )
         self.transform_layers = self._init_transformers(
-            in_channels=in_channels,
             out_channels=n_transform_channels,
             n_transformers=n_transformers,
             transformer_name=transformer_name,
@@ -103,13 +102,13 @@ class EnsNet(pl.LightningModule):
             'n_key_neurons',
             'coarsening_factor',
             'key_activation',
-            'interpolation_method',
+            'interpolation_mode',
             'same_key_query'
         )
 
     @property
     def in_size(self):
-        return self.example_input_array.numel
+        return self.example_input_array.numel()
 
     def _init_embedding(
             self,
@@ -140,7 +139,6 @@ class EnsNet(pl.LightningModule):
 
     @staticmethod
     def _init_transformers(
-            in_channels: int = 1,
             out_channels: int = 64,
             n_transformers: int = 1,
             transformer_name: str = 'ensemble',
@@ -153,6 +151,7 @@ class EnsNet(pl.LightningModule):
             grid_dims: Tuple[int, int] = (32, 64),
             same_key_query: bool = False
     ) -> torch.nn.ModuleList:
+        in_channels = 1
         transformer_list = torch.nn.ModuleList()
         for idx in range(n_transformers):
             curr_transformer = avail_transformers[transformer_name](
@@ -183,7 +182,7 @@ class EnsNet(pl.LightningModule):
             *input_tensor.shape[:2], self.in_size
         )
         embedding_tensor = self.embedding(in_embed_tensor)
-        transformed_tensor = input_tensor[..., 0, :, :]
+        transformed_tensor = input_tensor[..., [0], :, :]
         for transformer in self.transform_layers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
