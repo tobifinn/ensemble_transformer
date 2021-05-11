@@ -35,8 +35,7 @@ class IFSERADataModule(pl.LightningDataModule):
             data_dir: str = '../data/processed',
             batch_size: int = 64,
             normalizer_path: Union[None, str] = None,
-            include_vars: Union[None, Iterable[str]] = ('t2m', 't_850',
-                                                        'gh_850'),
+            include_vars: Union[None, Iterable[str]] = None,
             num_workers: int = 4,
     ):
         super().__init__()
@@ -70,6 +69,7 @@ class IFSERADataModule(pl.LightningDataModule):
             input_transform=input_transform,
             target_transform=target_transform,
         )
+        self.lats = self.ds_test.ifs['latitude'].values
         train_full = IFSERADataset(
             ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
             era_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
