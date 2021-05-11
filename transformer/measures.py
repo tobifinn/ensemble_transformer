@@ -38,18 +38,15 @@ import numpy as np
 # Internal modules
 
 
-logger = logging.getLogger(__name__)
-
-
 frac_sqrt_pi = 1 / np.sqrt(np.pi)
 
 
 def crps_loss(
-        prediction: Tuple[torch.Tensor, torch.Tensor],
+        pred_mean: torch.Tensor,
+        pred_stddev: torch.Tensor,
         target: torch.Tensor,
         eps: Union[int, float] = 1E-10
 ) -> torch.Tensor:
-    pred_mean, pred_stddev = prediction
     normal_distribution = torch.distributions.Normal(
         torch.zeros_like(pred_mean), 1.
     )
