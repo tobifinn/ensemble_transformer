@@ -57,6 +57,7 @@ class BaseTransformer(torch.nn.Module):
         self.coarsening_factor = coarsening_factor
         self.interpolation_mode = interpolation_mode
         self.grid_dims = grid_dims
+        self.n_key_neurons = n_key_neurons
 
         self.value_layer = self._construct_value_layer(
             in_channels=in_channels,
