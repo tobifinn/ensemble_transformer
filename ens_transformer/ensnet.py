@@ -113,7 +113,7 @@ class EnsNet(pl.LightningModule):
 
     @property
     def in_size(self):
-        return self.example_input_array.numel()
+        return self.example_input_array[:, 0].numel()
 
     def _init_embedding(
             self,
@@ -183,6 +183,7 @@ class EnsNet(pl.LightningModule):
         return optimizer
 
     def forward(self, input_tensor) -> torch.Tensor:
+        print(input_tensor.shape)
         in_embed_tensor = input_tensor.view(
             *input_tensor.shape[:2], self.in_size
         )
