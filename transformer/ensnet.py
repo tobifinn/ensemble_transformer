@@ -12,7 +12,7 @@
 
 # System modules
 import logging
-from typing import Tuple, Callable
+from typing import Tuple, Union
 
 # External modules
 import pytorch_lightning as pl
@@ -21,7 +21,7 @@ import torch
 import numpy as np
 
 # Internal modules
-from .layers.conv import EnsConv2d
+from .layers import EnsConv2d, avail_transformers
 from .measures import crps_loss, WeightedScore
 
 
@@ -37,8 +37,15 @@ class EnsNet(pl.LightningModule):
             in_channels: int = 3,
             learning_rate: float = 1E-3,
             n_transformers: int = 1,
-            coarsening_factor: int = 1,
+            transformer_name: str = 'ens',
             n_transform_channels: int = 64,
+            value_activation: Union[None, str] = None,
+            n_key_neurons: int = 1,
+            coarsening_factor: int = 1,
+            key_activation: Union[None, str] = None,
+            interpolation_mode: str = 'bilinear',
+            same_key_query: bool = False,
+            grid_dims: Tuple[int, int] = (32, 64),
     ):
         super().__init__()
         self.learning_rate = learning_rate
@@ -49,7 +56,20 @@ class EnsNet(pl.LightningModule):
             embedding_size=embedding_size,
             embedding_hidden=embedding_hidden
         )
-        self.transform_layers = self._init_transformers()
+        self.transform_layers = self._init_transformers(
+            in_channels=in_channels,
+            out_channels=n_transform_channels,
+            n_transformers=n_transformers,
+            transformer_name=transformer_name,
+            embedding_size=embedding_size,
+            value_activation=value_activation,
+            n_key_neurons=n_key_neurons,
+            coarsening_factor=coarsening_factor,
+            key_activation=key_activation,
+            interpolation_mode=interpolation_mode,
+            grid_dims=grid_dims,
+            same_key_query=same_key_query
+        )
         self.output_layer = EnsConv2d(
             in_channels=n_transform_channels,
             out_channels=1,
@@ -71,6 +91,21 @@ class EnsNet(pl.LightningModule):
                 lats=lats
             )
         }
+        self.save_hyperparameters(
+            'embedding_size',
+            'embedding_hidden',
+            'learning_rate',
+            'in_channels',
+            'n_transformers',
+            'transformer_name',
+            'n_transform_channels',
+            'value_activation',
+            'n_key_neurons',
+            'coarsening_factor',
+            'key_activation',
+            'interpolation_method',
+            'same_key_query'
+        )
 
     @property
     def in_size(self):
@@ -103,8 +138,38 @@ class EnsNet(pl.LightningModule):
             )
         return embedding
 
-    def _init_transformers(self) -> torch.nn.ModuleList:
-        pass
+    @staticmethod
+    def _init_transformers(
+            in_channels: int = 1,
+            out_channels: int = 64,
+            n_transformers: int = 1,
+            transformer_name: str = 'ensemble',
+            embedding_size: int = 256,
+            value_activation: Union[None, str] = 'selu',
+            n_key_neurons: int = 1,
+            coarsening_factor: int = 1,
+            key_activation: Union[None, str] = 'relu',
+            interpolation_mode: str = 'bilinear',
+            grid_dims: Tuple[int, int] = (32, 64),
+            same_key_query: bool = False
+    ) -> torch.nn.ModuleList:
+        transformer_list = torch.nn.ModuleList()
+        for idx in range(n_transformers):
+            curr_transformer = avail_transformers[transformer_name](
+                in_channels=in_channels,
+                out_channels=out_channels,
+                value_activation=value_activation,
+                embedding_size=embedding_size,
+                n_key_neurons=n_key_neurons,
+                coarsening_factor=coarsening_factor,
+                key_activation=key_activation,
+                interpolation_mode=interpolation_mode,
+                grid_dims=grid_dims,
+                same_key_query=same_key_query
+            )
+            in_channels = out_channels
+            transformer_list.append(curr_transformer)
+        return transformer_list
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.Adam(
