@@ -71,8 +71,9 @@ class BaseTransformer(torch.nn.Module):
             coarsening_factor: int = 1,
             key_activation: Union[None, str] = None,
             interpolation_mode: str = 'bilinear',
+            same_key_query: bool = False,
             grid_dims: Tuple[int, int] = (32, 64),
-            same_key_query: bool = False
+            ens_mems: int = 50
     ):
         super().__init__()
         self.coarsening_factor = coarsening_factor
@@ -91,6 +92,8 @@ class BaseTransformer(torch.nn.Module):
             key_activation=key_activation,
             same_key_query=same_key_query
         )
+        self.identity = torch.nn.Parameter(torch.eye(ens_mems),
+                                           requires_grad=False)
 
     @property
     def local_grid_dims(self) -> Tuple[int, int]:
@@ -219,6 +222,7 @@ class BaseTransformer(torch.nn.Module):
             in_tensor=in_tensor, embedding=embedding
         )
         weights = self._get_weights(key=key, query=query)
+        weights = weights + self.identity.view(1, 50, 50, 1, 1)
         weights = self.interpolate(weights)
         transformed = self._apply_weights(value, weights)
         return transformed

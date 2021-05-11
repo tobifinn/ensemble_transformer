@@ -74,8 +74,7 @@ class EnsTransformer(BaseTransformer):
         hessian_moved = hessian.moveaxis(1, -1).moveaxis(1, -1)
         moment_moved = moment_matrix.moveaxis(1, -1).moveaxis(1, -1)
         reg_lam = F.softplus(self.reg_value)
-        regularization = torch.eye(hessian_moved.shape[-1]) * reg_lam
-        hessian_reg = hessian_moved + regularization
+        hessian_reg = hessian_moved + reg_lam * self.identity
         weights, _ = torch.solve(moment_moved, hessian_reg)
         weights = weights.moveaxis(-1, 1).moveaxis(-1, 1)
         return weights
