@@ -38,7 +38,8 @@ import numpy as np
 # Internal modules
 
 
-frac_sqrt_pi = 1 / np.sqrt(np.pi)
+_frac_sqrt_pi = 1 / np.sqrt(np.pi)
+_normal_dist = torch.distributions.Normal(0., 1.)
 
 
 def crps_loss(
@@ -47,13 +48,10 @@ def crps_loss(
         target: torch.Tensor,
         eps: Union[int, float] = 1E-10
 ) -> torch.Tensor:
-    normal_distribution = torch.distributions.Normal(
-        torch.zeros_like(pred_mean), 1.
-    )
     normed_diff = (pred_mean - target + eps) / (pred_stddev + eps)
-    cdf = normal_distribution.cdf(normed_diff)
-    pdf = normal_distribution.log_prob(normed_diff).exp()
-    crps = pred_stddev * (normed_diff * (2 * cdf - 1) + 2 * pdf - frac_sqrt_pi)
+    cdf = _normal_dist.cdf(normed_diff)
+    pdf = _normal_dist.log_prob(normed_diff).exp()
+    crps = pred_stddev * (normed_diff * (2 * cdf - 1) + 2 * pdf - _frac_sqrt_pi)
     return crps
 
 
