@@ -162,7 +162,6 @@ class BaseTransformer(torch.nn.Module):
             padded_tensor,
             scale_factor=self.coarsening_factor,
             mode=self.interpolation_mode,
-            align_corners=False
         )
         interp_slice = slice(self.coarsening_factor, -self.coarsening_factor)
         interpolated_tensor = interpolated_tensor[..., interp_slice]
