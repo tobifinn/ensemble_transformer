@@ -169,9 +169,8 @@ class BaseTransformer(torch.nn.Module):
         output_tensor = split_batch_ens(interpolated_tensor, input_tensor)
         return output_tensor
 
-    @abc.abstractmethod
+    @staticmethod
     def _dot_product(
-            self,
             x: torch.Tensor,
             y: torch.Tensor
     ) -> torch.Tensor:
@@ -185,9 +184,8 @@ class BaseTransformer(torch.nn.Module):
     ) -> torch.Tensor:
         pass
 
-    @abc.abstractmethod
+    @staticmethod
     def _apply_weights(
-            self,
             value_tensor: torch.Tensor,
             weights_tensor: torch.Tensor
     ) -> torch.Tensor:
