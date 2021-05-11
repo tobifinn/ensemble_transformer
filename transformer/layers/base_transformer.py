@@ -40,15 +40,36 @@ from .utils import ens_to_batch, split_batch_ens
 logger = logging.getLogger(__name__)
 
 
+__all__ = [
+    'SELUKernel',
+    'BaseTransformer'
+]
+
+
+class SELUKernel(torch.nn.SELU):
+    def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        activated_tensor = super()(input_tensor)
+        activated_tensor = activated_tensor+1
+        return activated_tensor
+
+
+_activations = {
+    'selu': torch.nn.SELU,
+    'relu': torch.nn.ReLU,
+    'selu_kernel': SELUKernel
+}
+
+
 class BaseTransformer(torch.nn.Module):
     def __init__(
             self,
             in_channels: int,
             out_channels: int,
-            value_activation: bool = True,
+            value_activation: Union[None, str] = None,
             embedding_size: int = 256,
             n_key_neurons: int = 1,
             coarsening_factor: int = 1,
+            key_activation: Union[None, str] = None,
             interpolation_mode: str = 'bilinear',
             grid_dims: Tuple[int, int] = (32, 64),
             same_key_query: bool = False
@@ -62,11 +83,12 @@ class BaseTransformer(torch.nn.Module):
         self.value_layer = self._construct_value_layer(
             in_channels=in_channels,
             out_channels=out_channels,
-            activation=value_activation
+            value_activation=value_activation
         )
         self.key_layer, self.query_layer = self._construct_key_query_layer(
             embedding_size=embedding_size,
             n_key_neurons=n_key_neurons,
+            key_activation=key_activation,
             same_key_query=same_key_query
         )
 
@@ -82,7 +104,7 @@ class BaseTransformer(torch.nn.Module):
     def _construct_value_layer(
             in_channels: int,
             out_channels: int,
-            activation: bool = True
+            value_activation: Union[None, str] = None,
     ) -> torch.nn.Sequential:
         layers = [
             EarthPadding(pad_size=2),
@@ -92,14 +114,15 @@ class BaseTransformer(torch.nn.Module):
                 kernel_size=5
             )
         ]
-        if activation:
-            layers.append(torch.nn.SELU(inplace=True))
+        if value_activation is not None:
+            layers.append(_activations[value_activation](inplace=True))
         return torch.nn.Sequential(*layers)
 
     def _construct_key_query_layer(
             self,
             embedding_size: int = 256,
             n_key_neurons: int = 1,
+            key_activation: Union[None, str] = None,
             same_key_query: bool = False
     ):
         out_features = self.local_grid_dims[0] * self.local_grid_dims[1]
@@ -109,6 +132,11 @@ class BaseTransformer(torch.nn.Module):
             out_features=out_features,
             bias=False
         )
+        if key_activation is not None:
+            key_layer = torch.nn.Sequential(
+                key_layer,
+                _activations[key_activation](inplace=True)
+            )
         if same_key_query:
             query_layer = key_layer
         else:
@@ -117,6 +145,11 @@ class BaseTransformer(torch.nn.Module):
                 out_features=out_features,
                 bias=False
             )
+            if key_activation is not None:
+                query_layer = torch.nn.Sequential(
+                    query_layer,
+                    _activations[key_activation](inplace=True)
+                )
         return key_layer, query_layer
 
     def interpolate(self, input_tensor: torch.Tensor) -> torch.Tensor:
