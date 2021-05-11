@@ -17,6 +17,7 @@ import logging
 import torch
 
 # Internal modules
+from .utils import ens_to_batch, split_batch_ens
 
 
 logger = logging.getLogger(__name__)
@@ -51,18 +52,8 @@ class EnsConv2d(torch.nn.Module):
         self.conv2d = torch.nn.Conv2d(in_channels, out_channels,
                                       kernel_size=kernel_size)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        try:
-            x_viewed = x.view(-1, *x.shape[-3:])
-        except RuntimeError:
-            x_viewed = x.reshape(-1, *x.shape[-3:]).contiguous()
-        x_convolved = self.conv2d(x_viewed)
-        try:
-            x_convolved = x_convolved.view(
-                *x.shape[:-3], *x_convolved.shape[-3:]
-            )
-        except RuntimeError:
-            x_convolved = x_convolved.reshape(
-                *x.shape[:-3], *x_convolved.shape[-3:]
-            ).contiguous()
-        return x_convolved
+    def forward(self, in_tensor: torch.Tensor) -> torch.Tensor:
+        in_tensor_batched = ens_to_batch(in_tensor)
+        convolved_tensor = self.conv2d(in_tensor_batched)
+        out_tensor = split_batch_ens(convolved_tensor, in_tensor)
+        return out_tensor
