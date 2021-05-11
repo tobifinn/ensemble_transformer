@@ -56,6 +56,11 @@ class EnsNet(pl.LightningModule):
             embedding_size=embedding_size,
             embedding_hidden=embedding_hidden
         )
+        self.first_shortcut = EnsConv2d(
+            in_channels=1,
+            out_channels=n_transform_channels,
+            kernel_size=1
+        )
         self.transform_layers = self._init_transformers(
             out_channels=n_transform_channels,
             n_transformers=n_transformers,
@@ -183,11 +188,14 @@ class EnsNet(pl.LightningModule):
         )
         embedding_tensor = self.embedding(in_embed_tensor)
         transformed_tensor = input_tensor[..., [0], :, :]
+        shortcut_tensor = self.first_shortcut(transformed_tensor)
         for transformer in self.transform_layers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
                 embedding=embedding_tensor
             )
+            transformed_tensor = transformed_tensor + shortcut_tensor
+            shortcut_tensor = transformed_tensor
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
         return output_tensor
 
