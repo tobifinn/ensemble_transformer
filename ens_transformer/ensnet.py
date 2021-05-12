@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 class EnsNet(pl.LightningModule):
     def __init__(
             self,
-            lats: np.ndarray,
             embedding_size: int = 256,
             embedding_hidden: int = 0,
             in_channels: int = 3,
@@ -85,15 +84,12 @@ class EnsNet(pl.LightningModule):
                 lambda prediction, target: crps_loss(
                     prediction[0], prediction[1], target[:, 2]
                 ),
-                lats=lats
             ),
             'mse': WeightedScore(
                 lambda prediction, target: (prediction[0]-target[:, 2]).pow(2),
-                lats=lats
             ),
             'var': WeightedScore(
                 lambda prediction, target: prediction[1].pow(2),
-                lats=lats
             )
         })
         self.save_hyperparameters(
@@ -211,7 +207,6 @@ class EnsNet(pl.LightningModule):
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
         loss = self.metrics['crps'](prediction, target_tensor).mean()
-        self.log('loss', loss, prog_bar=True, logger=True)
         return loss
 
     def validation_step(
@@ -230,7 +225,7 @@ class EnsNet(pl.LightningModule):
         self.log('eval_loss', crps, prog_bar=True)
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
-        self.log("hp_metric", crps)
+        self.log('hp_metric', crps)
         if batch_idx == 0:
             labels = torch.arange(self.hparams['batch_size'],
                                   device=self.device)
@@ -239,6 +234,7 @@ class EnsNet(pl.LightningModule):
             embedded_ens = embedded_ens.view(-1, self.hparams['embedding_size'])
             labels = labels.view(-1)
             self.logger.experiment.add_embedding(
-                embedded_ens, metadata=labels, tag='weather_embedding'
+                embedded_ens, metadata=labels, tag='weather_embedding',
+                global_step=self.global_step
             )
         return crps
