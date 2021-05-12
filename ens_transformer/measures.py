@@ -40,6 +40,7 @@ import numpy as np
 
 _frac_sqrt_pi = 1 / np.sqrt(np.pi)
 _normal_dist = torch.distributions.Normal(0., 1.)
+_default_lats = np.linspace(-87.1875, 87.1875, num=32)
 
 
 def crps_loss(
@@ -67,13 +68,14 @@ class WeightedScore(torch.nn.Module):
     base_score : Callable
         This base score function evaluates a given prediction and target and
         output a non-rediced scored.
-    lats : numpy.ndarray
+    lats : numpy.ndarray or None, optional (default = None)
         This array contains the latitudinal coordinates in degrees.
+        If none the default latitudinal values for 32 grid points are used.
     """
     def __init__(
             self,
             base_score: Callable,
-            lats: np.ndarray
+            lats: Union[np.ndarray, None] = None
     ):
         super().__init__()
         self._weights = None
@@ -83,7 +85,7 @@ class WeightedScore(torch.nn.Module):
         )
 
     @staticmethod
-    def estimate_weights(lats: np.ndarray) -> torch.Tensor:
+    def estimate_weights(lats: Union[np.ndarray, None]) -> torch.Tensor:
         """
         This method estimates the weights based on set latitudinal coordinates.
         After the first iteration, the weights are stored and simply returned if
@@ -99,6 +101,8 @@ class WeightedScore(torch.nn.Module):
         weights : torch.Tensor
             The estimated weights.
         """
+        if lats is None:
+            lats = _default_lats
         weights = np.cos(np.deg2rad(lats))
         weights = weights / weights.mean()
         weights = torch.from_numpy(weights[:, None])
