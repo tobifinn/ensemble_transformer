@@ -74,12 +74,13 @@ class EnsNet(pl.LightningModule):
             grid_dims=grid_dims,
             same_key_query=same_key_query
         )
+
         self.output_layer = EnsConv2d(
             in_channels=n_transform_channels,
             out_channels=1,
             kernel_size=1
         )
-        self.metrics = {
+        self.metrics = torch.nn.ModuleDict({
             'crps': WeightedScore(
                 lambda prediction, target: crps_loss(
                     prediction[0], prediction[1], target[:, 2]
@@ -94,7 +95,7 @@ class EnsNet(pl.LightningModule):
                 lambda prediction, target: prediction[1].pow(2),
                 lats=lats
             )
-        }
+        })
         self.save_hyperparameters(
             'embedding_size',
             'embedding_hidden',
@@ -182,8 +183,7 @@ class EnsNet(pl.LightningModule):
         )
         return optimizer
 
-    def forward(self, input_tensor) -> torch.Tensor:
-        print(input_tensor.shape)
+    def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         in_embed_tensor = input_tensor.view(
             *input_tensor.shape[:2], self.in_size
         )
@@ -198,7 +198,7 @@ class EnsNet(pl.LightningModule):
             transformed_tensor = transformed_tensor + shortcut_tensor
             shortcut_tensor = transformed_tensor
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
-        return output_tensor
+        return output_tensor, embedding_tensor
 
     def training_step(
             self,
@@ -206,7 +206,7 @@ class EnsNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble = self(in_tensor)
+        output_ensemble, _ = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
@@ -220,7 +220,7 @@ class EnsNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble = self(in_tensor)
+        output_ensemble, embedded_ens = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
@@ -231,4 +231,14 @@ class EnsNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log("hp_metric", crps)
+        if batch_idx == 0:
+            labels = torch.arange(self.hparams['batch_size'],
+                                  device=self.device)
+            labels = labels.view(self.hparams['batch_size'], 1)
+            labels = torch.ones_like(embedded_ens[..., 0]) * labels
+            embedded_ens = embedded_ens.view(-1, self.hparams['embedding_size'])
+            labels = labels.view(-1)
+            self.logger.experiment.add_embedding(
+                embedded_ens, metadata=labels, tag='weather_embedding'
+            )
         return crps
