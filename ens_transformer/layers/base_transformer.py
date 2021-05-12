@@ -135,6 +135,9 @@ class BaseTransformer(torch.nn.Module):
             out_features=out_features,
             bias=False
         )
+        key_layer.weight.data = torch.ones_like(
+            key_layer.weight.data
+        )
         if key_activation is not None:
             key_layer = torch.nn.Sequential(
                 key_layer,
@@ -147,6 +150,9 @@ class BaseTransformer(torch.nn.Module):
                 in_features=embedding_size,
                 out_features=out_features,
                 bias=False
+            )
+            query_layer.weight.data = torch.ones_like(
+                query_layer.weight.data
             )
             if key_activation is not None:
                 query_layer = torch.nn.Sequential(
