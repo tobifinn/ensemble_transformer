@@ -17,7 +17,7 @@ import logging
 import torch
 
 # Internal modules
-from .utils import ens_to_batch, split_batch_ens
+from .utils import EnsembleWrapper
 
 
 logger = logging.getLogger(__name__)
@@ -49,11 +49,10 @@ class EnsConv2d(torch.nn.Module):
             self, in_channels: int, out_channels: int, kernel_size: int = 5
     ):
         super().__init__()
-        self.conv2d = torch.nn.Conv2d(in_channels, out_channels,
-                                      kernel_size=kernel_size)
+        self.conv2d = EnsembleWrapper(
+            torch.nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size)
+        )
 
     def forward(self, in_tensor: torch.Tensor) -> torch.Tensor:
-        in_tensor_batched = ens_to_batch(in_tensor)
-        convolved_tensor = self.conv2d(in_tensor_batched)
-        out_tensor = split_batch_ens(convolved_tensor, in_tensor)
-        return out_tensor
+        convolved_tensor = self.conv2d(in_tensor)
+        return convolved_tensor
