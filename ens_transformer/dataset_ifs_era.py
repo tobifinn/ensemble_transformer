@@ -65,10 +65,10 @@ class IFSERADataset(Dataset):
     ) -> Tuple[Union[np.ndarray, torch.Tensor],
                Union[np.ndarray, torch.Tensor]]:
         ifs_tensor = self.ifs[idx].values
-        if self.input_transform:
-            ifs_tensor = ifs_tensor
+        if self.input_transform is not None:
+            ifs_tensor = self.input_transform(ifs_tensor)
 
         era_tensor = self.era5[idx].values
-        if self.target_transform:
-            era_tensor = era_tensor
+        if self.target_transform is not None:
+            era_tensor = self.target_transform(era_tensor)
         return ifs_tensor, era_tensor
