@@ -33,6 +33,7 @@ import torch
 import torch.nn.functional as F
 
 # Internal modules
+from .activations import avail_activations
 from .conv import EnsConv2d, EarthPadding
 from .utils import ens_to_batch, split_batch_ens
 
@@ -41,23 +42,8 @@ logger = logging.getLogger(__name__)
 
 
 __all__ = [
-    'SELUKernel',
     'BaseTransformer'
 ]
-
-
-class SELUKernel(torch.nn.SELU):
-    def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        activated_tensor = super().forward(input_tensor)
-        activated_tensor = activated_tensor+1
-        return activated_tensor
-
-
-_activations = {
-    'selu': torch.nn.SELU,
-    'relu': torch.nn.ReLU,
-    'selu_kernel': SELUKernel
-}
 
 
 class BaseTransformer(torch.nn.Module):
@@ -118,7 +104,7 @@ class BaseTransformer(torch.nn.Module):
             )
         ]
         if value_activation is not None:
-            layers.append(_activations[value_activation](inplace=True))
+            layers.append(avail_activations[value_activation](inplace=True))
         return torch.nn.Sequential(*layers)
 
     def _construct_key_query_layer(
@@ -141,7 +127,7 @@ class BaseTransformer(torch.nn.Module):
         if key_activation is not None:
             key_layer = torch.nn.Sequential(
                 key_layer,
-                _activations[key_activation](inplace=True)
+                avail_activations[key_activation](inplace=True)
             )
         if same_key_query:
             query_layer = key_layer
@@ -157,7 +143,7 @@ class BaseTransformer(torch.nn.Module):
             if key_activation is not None:
                 query_layer = torch.nn.Sequential(
                     query_layer,
-                    _activations[key_activation](inplace=False)
+                    avail_activations[key_activation](inplace=False)
                 )
         return key_layer, query_layer
 
