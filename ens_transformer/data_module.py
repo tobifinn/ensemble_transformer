@@ -34,7 +34,8 @@ class IFSERADataModule(pl.LightningDataModule):
             self,
             data_dir: str = '../data/processed',
             batch_size: int = 64,
-            normalizer_path: Union[None, str] = None,
+            normalizer_path: Union[None, str] =
+                '../data/interim/normalizers.pt',
             include_vars: Union[None, Iterable[str]] = None,
             num_workers: int = 4,
     ):
@@ -50,12 +51,12 @@ class IFSERADataModule(pl.LightningDataModule):
     def _init_transforms(
             normalizer_path: Union[None, str] = None
     ) -> Tuple[Callable, Callable]:
-        target_transform = to_tensor
         if normalizer_path is not None:
-            normalizer = torch.load(normalizer_path)
-            input_transform = Compose([to_tensor, normalizer])
+            normalizers = torch.load(normalizer_path)
+            input_transform = Compose([to_tensor, normalizers['ifs']])
+            target_transform = Compose([to_tensor, normalizers['era']])
         else:
-            input_transform = to_tensor
+            input_transform = target_transform = to_tensor
         return input_transform, target_transform
 
     def setup(self, stage: Optional[str] = None) -> None:
