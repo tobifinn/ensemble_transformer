@@ -26,6 +26,7 @@
 # System modules
 import logging
 from typing import Union, Tuple
+from math import sqrt
 
 # External modules
 import torch
@@ -74,7 +75,7 @@ class EnsTransformer(BaseTransformer):
         hessian_moved = hessian.moveaxis(1, -1).moveaxis(1, -1)
         moment_moved = moment_matrix.moveaxis(1, -1).moveaxis(1, -1)
         reg_lam = F.softplus(self.reg_value)
-        hessian_reg = hessian_moved + reg_lam * self.identity
+        hessian_reg = hessian_moved + (reg_lam + 1E-8) * self.identity
         weights, _ = torch.solve(moment_moved, hessian_reg)
         weights = weights.moveaxis(-1, 1).moveaxis(-1, 1)
         return weights
@@ -84,7 +85,9 @@ class EnsTransformer(BaseTransformer):
             key: torch.Tensor,
             query: torch.Tensor
     ) -> torch.Tensor:
-        hessian = self._dot_product(key, key)
-        moment_matrix = self._dot_product(key, query)
+        key = key-key.mean(dim=1, keepdim=True)
+        query = query-query.mean(dim=1, keepdim=True)
+        hessian = self._dot_product(key, key) / sqrt(self.n_key_neurons)
+        moment_matrix = self._dot_product(key, query) / sqrt(self.n_key_neurons)
         weights = self._solve_lin(hessian, moment_matrix)
         return weights
