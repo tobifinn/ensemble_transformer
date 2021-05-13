@@ -1,4 +1,4 @@
-# @package embedding
+# @package model/embedding
 _target_: ensemble_transformer.embedding.ConvEmbedding
 in_channels: 3
 n_conv_layers: 6
