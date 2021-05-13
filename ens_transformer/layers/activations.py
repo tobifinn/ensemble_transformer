@@ -27,10 +27,3 @@ class SELUKernel(torch.nn.SELU):
         activated_tensor = super().forward(input_tensor)
         activated_tensor = activated_tensor+1
         return activated_tensor
-
-
-avail_activations = {
-    'selu': torch.nn.SELU,
-    'relu': torch.nn.ReLU,
-    'selu_kernel': SELUKernel
-}
