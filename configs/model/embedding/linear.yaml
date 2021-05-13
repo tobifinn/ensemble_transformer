@@ -1,0 +1,4 @@
+# @package embedding
+_target_: ensemble_transformer.embedding.LinearEmbedding
+input_size: 6144
+embedding_size: 256
