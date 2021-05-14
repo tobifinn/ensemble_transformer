@@ -50,7 +50,7 @@ class IFSERADataset(Dataset):
     def get_ifs(self) -> xr.DataArray:
         ds_ifs = xr.open_zarr(self.ifs_path)
         if self.include_vars is not None:
-            ds_ifs = ds_ifs[self.include_vars]
+            ds_ifs = ds_ifs[list(self.include_vars)]
         ds_ifs = ds_ifs.to_array('var_name')
         ds_ifs = ds_ifs.transpose('time', 'ensemble', 'var_name', 'latitude',
                                   'longitude')
