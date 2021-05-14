@@ -135,10 +135,7 @@ class TransformerNet(pl.LightningModule):
         return optimizer
 
     def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        in_embed_tensor = input_tensor.view(
-            *input_tensor.shape[:2], self.in_size
-        )
-        embedding_tensor = self.embedding(in_embed_tensor)
+        embedding_tensor = self.embedding(input_tensor)
         transformed_tensor = input_tensor[..., [0], :, :]
         shortcut_tensor = self.first_shortcut(transformed_tensor)
         for transformer in self.transformers:

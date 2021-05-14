@@ -81,7 +81,7 @@ class ConvEmbedding(torch.nn.Module):
             curr_out_channels = curr_out_channels * 2
         conv_layers = torch.nn.Sequential(*conv_layers)
         reduce_factor = 2 ** (n_conv_layers-1)
-        out_size = dim_sizes[0] * dim_sizes[1] / reduce_factor / reduce_factor
+        out_size = dim_sizes[0] * dim_sizes[1] // reduce_factor // reduce_factor
         return conv_layers, out_size
 
     def forward(self, in_tensor: torch.Tensor) -> torch.Tensor:
