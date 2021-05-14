@@ -1,8 +1,9 @@
 defaults:
   - data: ifs_era
   - model: transformer
+  - trainer: default
   - training: default
 
-experiment_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
+exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 logging_level: DEBUG
 seed: 42

@@ -1,0 +1,16 @@
+defaults:
+  - callbacks:
+      - model_checkpoint
+
+_target_: pytorch_lightning.Trainer
+logger: True
+checkpoint_callback: True
+gpus: 0
+progress_bar_refresh_rate: 1
+max_epochs: 1000
+min_epochs: 1
+val_check_interval: 1.0
+flush_logs_every_n_steps: 100
+log_every_n_steps: 50
+benchmark: False
+deterministic: False
