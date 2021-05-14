@@ -1,4 +1,5 @@
-_target_: pytorch_lightning.loggers.TensorBoardLogger
-save_dir: '../data/tensorboard'
-name: ${exp_name}
-log_graph: True
+tensorboard:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: 'tensorboard/'
+  name: ${exp_name}
+  log_graph: True
