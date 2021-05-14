@@ -64,15 +64,15 @@ class ConvEmbedding(torch.nn.Module):
         for idx in range(n_conv_layers):
             if idx > 0:
                 conv_layers.append(
-                    EnsembleWrapper(torch.nn.MaxPool2d(3, padding=1))
+                    EnsembleWrapper(torch.nn.MaxPool2d(2))
                 )
             conv_layers.append(
                 torch.nn.Sequential(
-                    EarthPadding(pad_size=2),
+                    EarthPadding(pad_size=1),
                     EnsConv2d(
                         in_channels=curr_in_channels,
                         out_channels=curr_out_channels,
-                        kernel_size=5
+                        kernel_size=3
                     ),
                     get_class(activation)(inplace=True)
                 )
@@ -81,7 +81,8 @@ class ConvEmbedding(torch.nn.Module):
             curr_out_channels = curr_out_channels * 2
         conv_layers = torch.nn.Sequential(*conv_layers)
         reduce_factor = 2 ** (n_conv_layers-1)
-        out_size = dim_sizes[0] * dim_sizes[1] // reduce_factor // reduce_factor
+        out_size = dim_sizes[0] * dim_sizes[1] * curr_in_channels
+        out_size = out_size // reduce_factor // reduce_factor
         return conv_layers, out_size
 
     def forward(self, in_tensor: torch.Tensor) -> torch.Tensor:
