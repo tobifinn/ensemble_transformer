@@ -1,18 +1,14 @@
 name: ensemble_transformer
 channels:
-  - conda-forge
-  - pytorch
+  - anaconda
 dependencies:
   - jupyter
-  - jupyterlab
   - numpy
   - matplotlib
-  - pytorch
-  - torchvision
-  - cudatoolkit=11.0
   - coverage
   - python=3.8
   - pip
   - tqdm
-  - pip:
-      - pytorch-lightning
+  - xarray
+  - dask
+  - zarr
