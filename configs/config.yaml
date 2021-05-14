@@ -1,5 +1,6 @@
 defaults:
   - data: ifs_era
+  - hydra: default
   - model: transformer
   - trainer: default
   - training: default
@@ -12,7 +13,3 @@ defaults:
 exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 logging_level: DEBUG
 seed: 42
-
-hydra:
-  run:
-    dir: ../data/models/${exp_name}
