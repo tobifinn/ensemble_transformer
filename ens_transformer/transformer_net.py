@@ -12,7 +12,7 @@
 
 # System modules
 import logging
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict, Any
 
 # External modules
 import pytorch_lightning as pl
@@ -117,13 +117,22 @@ class TransformerNet(pl.LightningModule):
             transformer_list.append(curr_transformer)
         return transformer_list
 
-    def configure_optimizers(self) -> torch.optim.Optimizer:
+    def configure_optimizers(
+            self
+    ) -> Union[torch.optim.Optimizer, Dict[str, Any]]:
         optimizer = instantiate(self.optimizer_cfg, self.parameters())
-        if self.scheduler_cfg is None:
-            return optimizer
-        else:
+        if self.scheduler_cfg is not None:
             scheduler = instantiate(self.scheduler_cfg, optimizer=optimizer)
-            return optimizer, scheduler
+            optimizer = {
+                'optimizer': optimizer,
+                'lr_scheduler': {
+                    'scheduler': scheduler,
+                    'monitor': 'eval_loss',
+                    'interval': 'epoch',
+                    'frequency': 1,
+                }
+            }
+        return optimizer
 
     def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         in_embed_tensor = input_tensor.view(
