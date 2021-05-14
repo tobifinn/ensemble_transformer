@@ -3,6 +3,11 @@ defaults:
   - model: transformer
   - trainer: default
   - training: default
+  - callbacks:
+      - early_stopping
+      - model_checkpoint
+  - logger:
+      - tensorboard
 
 exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 logging_level: DEBUG
