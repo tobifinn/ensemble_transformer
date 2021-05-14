@@ -1,0 +1,10 @@
+_target_: ens_transformer.transformers.KernelTransformer
+value_activation: torch.nn.SELU
+n_key_neurons: 8
+coarsening_factor: 8
+key_activation: torch.nn.SELU
+interpolation_mode: bilinear
+same_key_query: false
+grid_dims: ${data.grid_dims}
+ens_mems: ${data.ens_mems}
+embedding_size: ${model.embedding.embedding_size}
