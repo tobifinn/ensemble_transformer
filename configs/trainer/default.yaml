@@ -1,6 +1,9 @@
 defaults:
   - callbacks:
       - model_checkpoint
+      - early_stopping
+  - logger:
+      - tensorboard
 
 _target_: pytorch_lightning.Trainer
 logger: True

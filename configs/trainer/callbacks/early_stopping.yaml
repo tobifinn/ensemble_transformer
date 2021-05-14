@@ -1,0 +1,7 @@
+_target_: pytorch_lightning.callbacks.EarlyStopping
+monitor: 'eval_loss'
+min_delta: 0.0
+patience: 10
+verbose: false
+mode: 'min'
+strict: true
