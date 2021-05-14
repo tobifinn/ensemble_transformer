@@ -1,0 +1,11 @@
+# @package data
+defaults:
+  - data_module: ifs_era
+include_vars:
+  - 't2m'
+  - 't_850'
+  - 'gh_500'
+ens_mems: 50
+grid_dims:
+  - 32
+  - 64
