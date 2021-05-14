@@ -34,6 +34,8 @@ class TransformerNet(pl.LightningModule):
     def __init__(
             self,
             embedding: DictConfig,
+            optimizer: DictConfig,
+            scheduler: DictConfig,
             transformer: DictConfig,
             in_channels: int = 3,
             hidden_channels: int = 64,
@@ -75,6 +77,8 @@ class TransformerNet(pl.LightningModule):
                 lambda prediction, target: prediction[1].pow(2),
             )
         })
+        self.optimizer_cfg = optimizer
+        self.scheduler_cfg = scheduler
         self.save_hyperparameters()
 
     @property
@@ -114,11 +118,12 @@ class TransformerNet(pl.LightningModule):
         return transformer_list
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        optimizer = torch.optim.Adam(
-            self.parameters(),
-            lr=self.learning_rate
-        )
-        return optimizer
+        optimizer = instantiate(self.optimizer_cfg, self.parameters())
+        if self.scheduler_cfg is None:
+            return optimizer
+        else:
+            scheduler = instantiate(self.scheduler_cfg, optimizer=optimizer)
+            return optimizer, scheduler
 
     def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         in_embed_tensor = input_tensor.view(
