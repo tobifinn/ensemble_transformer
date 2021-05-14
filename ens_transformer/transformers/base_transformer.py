@@ -32,10 +32,11 @@ from typing import Union, Tuple
 import torch
 import torch.nn.functional as F
 
+from hydra.utils import get_class
+
 # Internal modules
-from .activations import avail_activations
-from .conv import EnsConv2d, EarthPadding
-from .utils import ens_to_batch, split_batch_ens
+from ..layers import EnsConv2d, EarthPadding
+from ..utils import ens_to_batch, split_batch_ens
 
 
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ class BaseTransformer(torch.nn.Module):
             )
         ]
         if value_activation is not None:
-            layers.append(avail_activations[value_activation](inplace=True))
+            layers.append(get_class(value_activation)(inplace=True))
         return torch.nn.Sequential(*layers)
 
     def _construct_key_query_layer(
@@ -127,7 +128,7 @@ class BaseTransformer(torch.nn.Module):
         if key_activation is not None:
             key_layer = torch.nn.Sequential(
                 key_layer,
-                avail_activations[key_activation](inplace=True)
+                get_class(key_activation)(inplace=True)
             )
         if same_key_query:
             query_layer = key_layer
@@ -143,7 +144,7 @@ class BaseTransformer(torch.nn.Module):
             if key_activation is not None:
                 query_layer = torch.nn.Sequential(
                     query_layer,
-                    avail_activations[key_activation](inplace=False)
+                    get_class(key_activation)(inplace=False)
                 )
         return key_layer, query_layer
 
