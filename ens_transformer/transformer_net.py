@@ -164,6 +164,20 @@ class TransformerNet(pl.LightningModule):
         loss = self.metrics['crps'](prediction, target_tensor).mean()
         return loss
 
+    def _log_embedding(self, embedded_ens: torch.Tensor):
+        labels = torch.arange(self.hparams['batch_size'],
+                              device=self.device)
+        labels = labels.view(self.hparams['batch_size'], 1)
+        labels = torch.ones_like(embedded_ens[..., 0]) * labels
+        embedded_ens = embedded_ens.view(
+            -1, self.hparams['embedding']['embedding_size']
+        )
+        labels = labels.view(-1)
+        self.logger.experiment.add_embedding(
+            embedded_ens, metadata=labels, tag='weather_embedding',
+            global_step=self.global_step
+        )
+
     def validation_step(
             self,
             batch: Tuple[torch.Tensor, torch.Tensor],
@@ -181,17 +195,6 @@ class TransformerNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log('hp_metric', crps)
-        if batch_idx == 0:
-            labels = torch.arange(self.hparams['batch_size'],
-                                  device=self.device)
-            labels = labels.view(self.hparams['batch_size'], 1)
-            labels = torch.ones_like(embedded_ens[..., 0]) * labels
-            embedded_ens = embedded_ens.view(
-                -1, self.hparams['embedding']['embedding_size']
-            )
-            labels = labels.view(-1)
-            self.logger.experiment.add_embedding(
-                embedded_ens, metadata=labels, tag='weather_embedding',
-                global_step=self.global_step
-            )
+        if batch_idx == 0 and hasattr(self.logger, 'add_embedding'):
+            self._log_embedding(embedded_ens)
         return crps
