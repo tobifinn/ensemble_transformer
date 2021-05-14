@@ -1,0 +1,9 @@
+defaults:
+  - embedding: linear
+  - transformer: softmax
+
+_recursive_: False
+_target_: ens_transformer.transformer_net.TransformerNet
+n_transformers: 1
+hidden_channels: 64
+learning_rate: ${learning_rate}
