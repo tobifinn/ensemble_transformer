@@ -1,5 +1,4 @@
-# @package model/embedding
-_target_: ensemble_transformer.embedding.ShallowEmbedding
+_target_: ens_transformer.embedding.ShallowEmbedding
 input_size: 6144
 hidden_neurons: 1024
 embedding_size: 256
