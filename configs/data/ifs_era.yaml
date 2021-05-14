@@ -1,6 +1,7 @@
-# @package data
 defaults:
   - data_module: ifs_era
+
+dir: '../data/processed'
 include_vars:
   - 't2m'
   - 't_850'

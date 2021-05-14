@@ -1,5 +1,5 @@
 _target_: ens_transformer.data_module.IFSERADataModule
-data_dir: '../data/processed'
+data_dir: ${data.dir}
 normalizer_path: '../data/interim/normalizers.pt'
 include_vars: ${data.include_vars}
 batch_size: ${batch_size}
