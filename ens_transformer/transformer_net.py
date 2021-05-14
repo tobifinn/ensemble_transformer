@@ -17,65 +17,48 @@ from typing import Tuple, Union
 # External modules
 import pytorch_lightning as pl
 import torch
+from hydra.utils import get_class, instantiate
+from omegaconf import DictConfig
 
 import numpy as np
 
 # Internal modules
-from .layers import EnsConv2d, avail_transformers
+from .layers.conv import EnsConv2d
 from .measures import crps_loss, WeightedScore
 
 
 logger = logging.getLogger(__name__)
 
 
-class EnsNet(pl.LightningModule):
+class TransformerNet(pl.LightningModule):
     def __init__(
             self,
-            embedding_size: int = 256,
-            embedding_hidden: int = 0,
+            embedding: DictConfig,
+            transformer: DictConfig,
             in_channels: int = 3,
-            learning_rate: float = 1E-3,
+            hidden_channels: int = 64,
             n_transformers: int = 1,
-            transformer_name: str = 'ensemble',
-            n_transform_channels: int = 64,
-            value_activation: Union[None, str] = None,
-            n_key_neurons: int = 1,
-            coarsening_factor: int = 1,
-            key_activation: Union[None, str] = None,
-            interpolation_mode: str = 'bilinear',
-            same_key_query: bool = False,
-            grid_dims: Tuple[int, int] = (32, 64),
+            learning_rate: float = 1E-3,
     ):
         super().__init__()
         self.learning_rate = learning_rate
         self.example_input_array = torch.randn(
             1, 50, in_channels, 32, 64
         )
-        self.embedding = self._init_embedding(
-            embedding_size=embedding_size,
-            embedding_hidden=embedding_hidden
+        self.embedding = self._init_embedding(embedding)
+        self.transformers = self._init_transformers(
+            transformer,
+            hidden_channels=hidden_channels,
+            n_transformers=n_transformers
         )
         self.first_shortcut = EnsConv2d(
             in_channels=1,
-            out_channels=n_transform_channels,
+            out_channels=hidden_channels,
             kernel_size=1
-        )
-        self.transform_layers = self._init_transformers(
-            out_channels=n_transform_channels,
-            n_transformers=n_transformers,
-            transformer_name=transformer_name,
-            embedding_size=embedding_size,
-            value_activation=value_activation,
-            n_key_neurons=n_key_neurons,
-            coarsening_factor=coarsening_factor,
-            key_activation=key_activation,
-            interpolation_mode=interpolation_mode,
-            grid_dims=grid_dims,
-            same_key_query=same_key_query
         )
 
         self.output_layer = EnsConv2d(
-            in_channels=n_transform_channels,
+            in_channels=hidden_channels,
             out_channels=1,
             kernel_size=1
         )
@@ -92,83 +75,41 @@ class EnsNet(pl.LightningModule):
                 lambda prediction, target: prediction[1].pow(2),
             )
         })
-        self.save_hyperparameters(
-            'embedding_size',
-            'embedding_hidden',
-            'learning_rate',
-            'in_channels',
-            'n_transformers',
-            'transformer_name',
-            'n_transform_channels',
-            'value_activation',
-            'n_key_neurons',
-            'coarsening_factor',
-            'key_activation',
-            'interpolation_mode',
-            'same_key_query'
-        )
+        self.save_hyperparameters()
 
     @property
     def in_size(self):
-        return self.example_input_array[:, 0].numel()
+        return self.example_input_array[0, 0].numel()
 
+    @staticmethod
     def _init_embedding(
-            self,
-            embedding_size: int = 256,
-            embedding_hidden: int = 0
+            embedding_cfg: DictConfig
     ) -> torch.nn.Module:
-        if embedding_hidden > 0:
-            embedding = torch.nn.Sequential(
-                torch.nn.Linear(
-                    in_features=self.in_size,
-                    out_features=embedding_hidden,
-                    bias=True
-                ),
-                torch.nn.SELU(inplace=True),
-                torch.nn.Linear(
-                    in_features=embedding_hidden,
-                    out_features=embedding_size,
-                    bias=True
-                )
-            )
-        else:
-            embedding = torch.nn.Linear(
-                in_features=self.in_size,
-                out_features=embedding_size,
-                bias=True
-            )
+        embedding = instantiate(embedding_cfg)
         return embedding
 
     @staticmethod
     def _init_transformers(
-            out_channels: int = 64,
-            n_transformers: int = 1,
-            transformer_name: str = 'ensemble',
-            embedding_size: int = 256,
-            value_activation: Union[None, str] = 'selu',
-            n_key_neurons: int = 1,
-            coarsening_factor: int = 1,
-            key_activation: Union[None, str] = 'relu',
-            interpolation_mode: str = 'bilinear',
-            grid_dims: Tuple[int, int] = (32, 64),
-            same_key_query: bool = False
+            cfg: DictConfig,
+            hidden_channels: int = 64,
+            n_transformers: int = 1
     ) -> torch.nn.ModuleList:
         in_channels = 1
         transformer_list = torch.nn.ModuleList()
         for idx in range(n_transformers):
-            curr_transformer = avail_transformers[transformer_name](
+            curr_transformer = get_class(cfg._target_)(
                 in_channels=in_channels,
-                out_channels=out_channels,
-                value_activation=value_activation,
-                embedding_size=embedding_size,
-                n_key_neurons=n_key_neurons,
-                coarsening_factor=coarsening_factor,
-                key_activation=key_activation,
-                interpolation_mode=interpolation_mode,
-                grid_dims=grid_dims,
-                same_key_query=same_key_query
+                out_channels=hidden_channels,
+                value_activation=cfg.value_activation,
+                embedding_size=cfg.embedding_size,
+                n_key_neurons=cfg.n_key_neurons,
+                coarsening_factor=cfg.coarsening_factor,
+                key_activation=cfg.key_activation,
+                interpolation_mode=cfg.interpolation_mode,
+                grid_dims=cfg.grid_dims,
+                same_key_query=cfg.same_key_query
             )
-            in_channels = out_channels
+            in_channels = hidden_channels
             transformer_list.append(curr_transformer)
         return transformer_list
 
@@ -186,7 +127,7 @@ class EnsNet(pl.LightningModule):
         embedding_tensor = self.embedding(in_embed_tensor)
         transformed_tensor = input_tensor[..., [0], :, :]
         shortcut_tensor = self.first_shortcut(transformed_tensor)
-        for transformer in self.transform_layers:
+        for transformer in self.transformers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
                 embedding=embedding_tensor
@@ -231,7 +172,9 @@ class EnsNet(pl.LightningModule):
                                   device=self.device)
             labels = labels.view(self.hparams['batch_size'], 1)
             labels = torch.ones_like(embedded_ens[..., 0]) * labels
-            embedded_ens = embedded_ens.view(-1, self.hparams['embedding_size'])
+            embedded_ens = embedded_ens.view(
+                -1, self.hparams['embedding']['embedding_size']
+            )
             labels = labels.view(-1)
             self.logger.experiment.add_embedding(
                 embedded_ens, metadata=labels, tag='weather_embedding',
