@@ -10,6 +10,6 @@ defaults:
   - logger:
       - tensorboard
 
-exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
+exp_name: MISSING
 logging_level: DEBUG
 seed: 42
