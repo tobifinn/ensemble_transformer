@@ -1,3 +1,3 @@
 _target_: ens_transformer.embedding.LinearEmbedding
 input_size: 6144
-embedding_size: 128
+embedding_size: 256
