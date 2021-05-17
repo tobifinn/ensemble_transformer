@@ -54,7 +54,7 @@ class TransformerNet(pl.LightningModule):
         self.in_layer = torch.nn.Sequential(
             EarthPadding(3),
             EnsConv2d(
-                in_channels=1,
+                in_channels=in_channels,
                 out_channels=hidden_channels,
                 kernel_size=7
             )
@@ -122,7 +122,7 @@ class TransformerNet(pl.LightningModule):
         return optimizer
 
     def forward(self, input_tensor) -> torch.Tensor:
-        transformed_tensor = self.first_shortcut(input_tensor)
+        transformed_tensor = self.in_layer(input_tensor)
         for transformer in self.transformers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
@@ -149,7 +149,7 @@ class TransformerNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble, embedded_ens = self(in_tensor)
+        output_ensemble = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
