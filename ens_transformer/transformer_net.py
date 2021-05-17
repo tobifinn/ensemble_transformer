@@ -141,6 +141,7 @@ class TransformerNet(pl.LightningModule):
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
         loss = self.metrics['crps'](prediction, target_tensor).mean()
+        self.log('loss', loss, prog_bar=True)
         return loss
 
     def validation_step(
