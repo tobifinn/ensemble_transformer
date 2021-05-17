@@ -76,7 +76,7 @@ class EnsTransformer(BaseTransformer):
     ) -> torch.Tensor:
         key = key-key.mean(dim=1, keepdim=True)
         query = query-query.mean(dim=1, keepdim=True)
-        norm_factor = 1 / sqrt(key.shape[-2] * key.shape[-1])
+        norm_factor = 1 / torch.sqrt(key.shape[-2] * key.shape[-1])
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
         weights = self._solve_lin(hessian, moment_matrix)
