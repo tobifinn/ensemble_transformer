@@ -50,126 +50,76 @@ __all__ = [
 class BaseTransformer(torch.nn.Module):
     def __init__(
             self,
-            in_channels: int,
-            out_channels: int,
-            value_activation: Union[None, str] = None,
-            embedding_size: int = 256,
-            n_key_neurons: int = 1,
-            coarsening_factor: int = 1,
-            key_activation: Union[None, str] = None,
-            interpolation_mode: str = 'bilinear',
+            channels: int,
+            activation: Union[None, str] = None,
+            key_activation: Union[None, str] = 'torch.nn.ReLU',
+            value_layer: bool = True,
             same_key_query: bool = False,
-            grid_dims: Tuple[int, int] = (32, 64),
             ens_mems: int = 50
     ):
         super().__init__()
-        self.coarsening_factor = coarsening_factor
-        self.interpolation_mode = interpolation_mode
-        self.grid_dims = grid_dims
-        self.n_key_neurons = n_key_neurons
-
+        if activation is not None:
+            self.activation = get_class(activation)(inplace=True)
+        else:
+            self.activation = None
         self.value_layer = self._construct_value_layer(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            value_activation=value_activation
+            channels=channels,
+            value_layer=value_layer
         )
-        self.key_layer, self.query_layer = self._construct_key_query_layer(
-            embedding_size=embedding_size,
-            n_key_neurons=n_key_neurons,
+        self.key_layer = self._construct_branch_layer(
+            channels=channels,
             key_activation=key_activation,
-            same_key_query=same_key_query
         )
+        if same_key_query:
+            self.query_layer = self.key_layer
+        else:
+            self.query_layer = self._construct_branch_layer(
+                channels=channels,
+                key_activation=key_activation,
+            )
         self.identity = torch.nn.Parameter(torch.eye(ens_mems),
                                            requires_grad=False)
 
-    @property
-    def local_grid_dims(self) -> Tuple[int, int]:
-        local_dims = (
-            self.grid_dims[0] // self.coarsening_factor,
-            self.grid_dims[1] // self.coarsening_factor
-        )
-        return local_dims
-
     @staticmethod
     def _construct_value_layer(
-            in_channels: int,
-            out_channels: int,
-            value_activation: Union[None, str] = None,
+            channels: int,
+            value_layer: bool = True,
     ) -> torch.nn.Sequential:
-        layers = [
-            EarthPadding(pad_size=2),
-            EnsConv2d(
-                in_channels=in_channels,
-                out_channels=out_channels,
+        layers = []
+        if value_layer:
+            conv_layer = EnsConv2d(
+                in_channels=channels,
+                out_channels=channels,
                 kernel_size=5
             )
-        ]
-        if value_activation is not None:
-            layers.append(get_class(value_activation)(inplace=True))
+            torch.nn.init.kaiming_normal(conv_layer.conv2d.base_layer.weight)
+            torch.nn.init.constant(conv_layer.conv2d.base_layer.bias, 0.)
+            layers = [EarthPadding(pad_size=2), conv_layer]
         return torch.nn.Sequential(*layers)
 
-    def _construct_key_query_layer(
-            self,
-            embedding_size: int = 256,
-            n_key_neurons: int = 1,
+    @staticmethod
+    def _construct_branch_layer(
+            channels: int,
             key_activation: Union[None, str] = None,
-            same_key_query: bool = False
-    ):
-        out_features = self.local_grid_dims[0] * self.local_grid_dims[1]
-        out_features *= n_key_neurons
-        key_layer = torch.nn.Linear(
-            in_features=embedding_size,
-            out_features=out_features,
-            bias=False
+    ) -> torch.nn.Sequential:
+        conv_layer = EnsConv2d(
+            in_channels=channels,
+            out_channels=channels,
+            kernel_size=5
         )
-        key_layer.weight.data = torch.ones_like(
-            key_layer.weight.data
-        ) / embedding_size
-        if key_activation is not None:
-            key_layer = torch.nn.Sequential(
-                key_layer,
-                get_class(key_activation)(inplace=True)
-            )
-        if same_key_query:
-            query_layer = key_layer
-        else:
-            query_layer = torch.nn.Linear(
-                in_features=embedding_size,
-                out_features=out_features,
-                bias=False
-            )
-            query_layer.weight.data = torch.ones_like(
-                query_layer.weight.data
-            ) / embedding_size
-            if key_activation is not None:
-                query_layer = torch.nn.Sequential(
-                    query_layer,
-                    get_class(key_activation)(inplace=False)
-                )
-        return key_layer, query_layer
-
-    def interpolate(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        input_tensor_batched = ens_to_batch(input_tensor)
-        padded_tensor = torch.cat(
-            [input_tensor_batched[..., -1:], input_tensor_batched,
-             input_tensor_batched[..., :1]], dim=-1
-        )
-        interpolated_tensor = F.interpolate(
-            padded_tensor,
-            scale_factor=self.coarsening_factor,
-            mode=self.interpolation_mode,
-        )
-        interp_slice = slice(self.coarsening_factor, -self.coarsening_factor)
-        interpolated_tensor = interpolated_tensor[..., interp_slice]
-        output_tensor = split_batch_ens(interpolated_tensor, input_tensor)
-        return output_tensor
+        torch.nn.init.kaiming_normal(conv_layer.conv2d.base_layer.weight)
+        torch.nn.init.constant(conv_layer.conv2d.base_layer.bias, 0.)
+        layers = [EarthPadding(pad_size=2), conv_layer]
+        if key_activation:
+            layers.append(get_class(key_activation)(inplace=True))
+        return torch.nn.Sequential(*layers)
 
     @staticmethod
     def _dot_product(
             x: torch.Tensor,
             y: torch.Tensor
     ) -> torch.Tensor:
-        return torch.einsum('binhw, bjnhw->bijhw', x, y)
+        return torch.einsum('bichw, bjchw->bijc', x, y)
 
     @abc.abstractmethod
     def _get_weights(
@@ -187,7 +137,7 @@ class BaseTransformer(torch.nn.Module):
         value_mean = value_tensor.mean(dim=1, keepdim=True)
         value_perts = value_tensor-value_mean
         transformed_perts = torch.einsum(
-            'bijhw, bichw->bjchw', weights_tensor, value_perts
+            'bijc, bichw->bjchw', weights_tensor, value_perts
         )
         transformed_tensor = value_mean + transformed_perts
         return transformed_tensor
@@ -195,27 +145,21 @@ class BaseTransformer(torch.nn.Module):
     def _apply_layers(
             self,
             in_tensor: torch.Tensor,
-            embedding: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         value = self.value_layer(in_tensor)
-        key = self.key_layer(embedding)
-        query = self.query_layer(embedding)
-        key = key.view(*key.shape[:-1], self.n_key_neurons,
-                       *self.local_grid_dims)
-        query = query.view(*query.shape[:-1], self.n_key_neurons,
-                           *self.local_grid_dims)
+        key = self.key_layer(in_tensor)
+        query = self.query_layer(in_tensor)
         return value, key, query
 
     def forward(
             self,
-            in_tensor: torch.Tensor,
-            embedding: torch.Tensor
+            in_tensor: torch.Tensor
     ) -> torch.Tensor:
         value, key, query = self._apply_layers(
-            in_tensor=in_tensor, embedding=embedding
+            in_tensor=in_tensor
         )
         weights = self._get_weights(key=key, query=query)
-        weights = weights + self.identity.view(1, 50, 50, 1, 1)
-        weights = self.interpolate(weights)
         transformed = self._apply_weights(value, weights)
+        if self.activation is not None:
+            transformed = self.activation(transformed)
         return transformed
