@@ -4,3 +4,4 @@ normalizer_path: '../data/interim/normalizers.pt'
 include_vars: ${data.include_vars}
 batch_size: ${batch_size}
 num_workers: ${num_workers}
+pin_memory: true

@@ -38,6 +38,7 @@ class IFSERADataModule(pl.LightningDataModule):
                 '../data/interim/normalizers.pt',
             include_vars: Union[None, Iterable[str]] = None,
             num_workers: int = 4,
+            pin_memory: bool = True
     ):
         super().__init__()
         self._split_perc = 0.1
@@ -46,6 +47,7 @@ class IFSERADataModule(pl.LightningDataModule):
         self.normalizer_path = normalizer_path
         self.include_vars = include_vars
         self.num_workers = num_workers
+        self.pin_memory = pin_memory
 
     @staticmethod
     def _init_transforms(
@@ -86,21 +88,25 @@ class IFSERADataModule(pl.LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
-            dataset=self.ds_train, pin_memory=True,
-            num_workers=self.num_workers, shuffle=True,
+            dataset=self.ds_train,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+            shuffle=True,
             batch_size=self.batch_size
         )
 
     def val_dataloader(self) -> DataLoader:
         return DataLoader(
-            dataset=self.ds_eval, pin_memory=True,
+            dataset=self.ds_eval,
+            pin_memory=self.pin_memory,
             num_workers=self.num_workers,
             batch_size=self.batch_size
         )
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(
-            dataset=self.ds_test, pin_memory=True,
+            dataset=self.ds_test,
+            pin_memory=self.pin_memory,
             num_workers=self.num_workers,
             batch_size=self.batch_size
         )
