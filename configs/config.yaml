@@ -6,6 +6,7 @@ defaults:
   - training: default
   - callbacks:
       - early_stopping
+      - learning_rate_monitor
       - model_checkpoint
   - logger:
       - tensorboard
