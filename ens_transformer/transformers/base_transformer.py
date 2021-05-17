@@ -92,8 +92,11 @@ class BaseTransformer(torch.nn.Module):
                 out_channels=channels,
                 kernel_size=5
             )
-            torch.nn.init.kaiming_normal(conv_layer.conv2d.base_layer.weight)
-            torch.nn.init.constant(conv_layer.conv2d.base_layer.bias, 0.)
+            torch.nn.init.kaiming_normal_(
+                conv_layer.conv2d.base_layer.weight,
+                nonlinearity='relu'
+            )
+            torch.nn.init.constant_(conv_layer.conv2d.base_layer.bias, 0.)
             layers = [EarthPadding(pad_size=2), conv_layer]
         return torch.nn.Sequential(*layers)
 
@@ -107,8 +110,8 @@ class BaseTransformer(torch.nn.Module):
             out_channels=channels,
             kernel_size=5
         )
-        torch.nn.init.kaiming_normal(conv_layer.conv2d.base_layer.weight)
-        torch.nn.init.constant(conv_layer.conv2d.base_layer.bias, 0.)
+        torch.nn.init.kaiming_normal_(conv_layer.conv2d.base_layer.weight)
+        torch.nn.init.constant_(conv_layer.conv2d.base_layer.bias, 0.)
         layers = [EarthPadding(pad_size=2), conv_layer]
         if key_activation:
             layers.append(get_class(key_activation)(inplace=True))
