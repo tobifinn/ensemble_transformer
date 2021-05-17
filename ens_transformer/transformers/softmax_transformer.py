@@ -45,6 +45,6 @@ class SoftmaxTransformer(BaseTransformer):
             query: torch.Tensor
     ) -> torch.Tensor:
         gram_mat = self._dot_product(key, query)
-        gram_mat = gram_mat / np.sqrt(self.n_key_neurons)
+        gram_mat = gram_mat / np.sqrt(key.shape[-2]*key.shape[-1])
         weights = torch.softmax(gram_mat, dim=1)
         return weights
