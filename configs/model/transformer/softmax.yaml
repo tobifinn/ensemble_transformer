@@ -1,6 +1,6 @@
 _target_: ens_transformer.transformers.SoftmaxTransformer
 activation: torch.nn.ReLU
-key_activation: Null
+key_activation: torch.nn.ReLU
 same_key_query: false
 value_layer: true
 ens_mems: ${data.ens_mems}
