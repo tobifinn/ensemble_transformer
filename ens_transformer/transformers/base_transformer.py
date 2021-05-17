@@ -30,13 +30,12 @@ from typing import Union, Tuple
 
 # External modules
 import torch
-import torch.nn.functional as F
+import numpy as np
 
 from hydra.utils import get_class
 
 # Internal modules
 from ..layers import EnsConv2d, EarthPadding
-from ..utils import ens_to_batch, split_batch_ens
 
 
 logger = logging.getLogger(__name__)
@@ -77,8 +76,9 @@ class BaseTransformer(torch.nn.Module):
                 channels=channels,
                 key_activation=key_activation,
             )
-        self.identity = torch.nn.Parameter(torch.eye(ens_mems),
-                                           requires_grad=False)
+        identity = torch.zeros(1, 1, ens_mems, ens_mems)
+        identity[..., np.arange(ens_mems), np.arange(ens_mems)] = 1.
+        self.identity = torch.nn.Parameter(identity, requires_grad=False)
 
     @staticmethod
     def _construct_value_layer(
@@ -122,7 +122,7 @@ class BaseTransformer(torch.nn.Module):
             x: torch.Tensor,
             y: torch.Tensor
     ) -> torch.Tensor:
-        return torch.einsum('bichw, bjchw->bijc', x, y)
+        return torch.einsum('bichw, bjchw->bcij', x, y)
 
     @abc.abstractmethod
     def _get_weights(
@@ -140,7 +140,7 @@ class BaseTransformer(torch.nn.Module):
         value_mean = value_tensor.mean(dim=1, keepdim=True)
         value_perts = value_tensor-value_mean
         transformed_perts = torch.einsum(
-            'bijc, bichw->bjchw', weights_tensor, value_perts
+            'bcij, bichw->bjchw', weights_tensor, value_perts
         )
         transformed_tensor = value_mean + transformed_perts
         return transformed_tensor
