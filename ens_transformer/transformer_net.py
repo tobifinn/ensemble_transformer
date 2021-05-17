@@ -23,7 +23,7 @@ from omegaconf import DictConfig
 import numpy as np
 
 # Internal modules
-from .layers.conv import EnsConv2d
+from .layers import EnsConv2d, EarthPadding
 from .measures import crps_loss, WeightedScore
 
 
@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 class TransformerNet(pl.LightningModule):
     def __init__(
             self,
-            embedding: DictConfig,
             optimizer: DictConfig,
             scheduler: DictConfig,
             transformer: DictConfig,
@@ -47,23 +46,25 @@ class TransformerNet(pl.LightningModule):
         self.example_input_array = torch.randn(
             1, 50, in_channels, 32, 64
         )
-        self.embedding = self._init_embedding(embedding)
         self.transformers = self._init_transformers(
             transformer,
             hidden_channels=hidden_channels,
             n_transformers=n_transformers
         )
-        self.first_shortcut = EnsConv2d(
-            in_channels=1,
-            out_channels=hidden_channels,
-            kernel_size=1
+        self.in_layer = torch.nn.Sequential(
+            EarthPadding(3),
+            EnsConv2d(
+                in_channels=1,
+                out_channels=hidden_channels,
+                kernel_size=7
+            )
         )
-
         self.output_layer = EnsConv2d(
             in_channels=hidden_channels,
             out_channels=1,
             kernel_size=1
         )
+
         self.metrics = torch.nn.ModuleDict({
             'crps': WeightedScore(
                 lambda prediction, target: crps_loss(
@@ -86,34 +87,20 @@ class TransformerNet(pl.LightningModule):
         return self.example_input_array[0, 0].numel()
 
     @staticmethod
-    def _init_embedding(
-            embedding_cfg: DictConfig
-    ) -> torch.nn.Module:
-        embedding = instantiate(embedding_cfg)
-        return embedding
-
-    @staticmethod
     def _init_transformers(
             cfg: DictConfig,
             hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.ModuleList:
-        in_channels = 1
         transformer_list = torch.nn.ModuleList()
         for idx in range(n_transformers):
             curr_transformer = get_class(cfg._target_)(
-                in_channels=in_channels,
-                out_channels=hidden_channels,
-                value_activation=cfg.value_activation,
-                embedding_size=cfg.embedding_size,
-                n_key_neurons=cfg.n_key_neurons,
-                coarsening_factor=cfg.coarsening_factor,
+                channels=hidden_channels,
+                activation=cfg.activation,
                 key_activation=cfg.key_activation,
-                interpolation_mode=cfg.interpolation_mode,
-                grid_dims=cfg.grid_dims,
-                same_key_query=cfg.same_key_query
+                same_key_query=cfg.same_key_query,
+                value_layer=cfg.value_layer
             )
-            in_channels = hidden_channels
             transformer_list.append(curr_transformer)
         return transformer_list
 
@@ -134,19 +121,14 @@ class TransformerNet(pl.LightningModule):
             }
         return optimizer
 
-    def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        embedding_tensor = self.embedding(input_tensor)
-        transformed_tensor = input_tensor[..., [0], :, :]
-        shortcut_tensor = self.first_shortcut(transformed_tensor)
+    def forward(self, input_tensor) -> torch.Tensor:
+        transformed_tensor = self.first_shortcut(input_tensor)
         for transformer in self.transformers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
-                embedding=embedding_tensor
             )
-            transformed_tensor = transformed_tensor + shortcut_tensor
-            shortcut_tensor = transformed_tensor
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
-        return output_tensor, embedding_tensor
+        return output_tensor
 
     def training_step(
             self,
@@ -154,26 +136,12 @@ class TransformerNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble, _ = self(in_tensor)
+        output_ensemble = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
         loss = self.metrics['crps'](prediction, target_tensor).mean()
         return loss
-
-    def _log_embedding(self, embedded_ens: torch.Tensor):
-        labels = torch.arange(self.hparams['batch_size'],
-                              device=self.device)
-        labels = labels.view(self.hparams['batch_size'], 1)
-        labels = torch.ones_like(embedded_ens[..., 0]) * labels
-        embedded_ens = embedded_ens.view(
-            -1, self.hparams['embedding']['embedding_size']
-        )
-        labels = labels.view(-1)
-        self.logger.experiment.add_embedding(
-            embedded_ens, metadata=labels, tag='weather_embedding',
-            global_step=self.global_step
-        )
 
     def validation_step(
             self,
@@ -192,6 +160,4 @@ class TransformerNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log('hp_metric', crps)
-        if batch_idx == 0 and hasattr(self.logger, 'add_embedding'):
-            self._log_embedding(embedded_ens)
         return crps
