@@ -1,10 +1,6 @@
 _target_: ens_transformer.transformers.SoftmaxTransformer
-value_activation: torch.nn.SELU
-n_key_neurons: 8
-coarsening_factor: 8
+activation: torch.nn.ReLU
 key_activation: Null
-interpolation_mode: bilinear
 same_key_query: false
-grid_dims: ${data.grid_dims}
+value_layer: true
 ens_mems: ${data.ens_mems}
-embedding_size: ${model.embedding.embedding_size}

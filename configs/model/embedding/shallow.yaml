@@ -1,5 +1,0 @@
-_target_: ens_transformer.embedding.ShallowEmbedding
-input_size: 6144
-hidden_neurons: 1024
-embedding_size: 256
-activation: torch.nn.SELU

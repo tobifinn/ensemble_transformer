@@ -1,5 +1,4 @@
 defaults:
-  - embedding: linear
   - optimizer: adam
   - scheduler: plateau
   - transformer: softmax
