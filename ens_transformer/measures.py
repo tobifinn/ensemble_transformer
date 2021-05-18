@@ -47,7 +47,7 @@ def crps_loss(
         pred_mean: torch.Tensor,
         pred_stddev: torch.Tensor,
         target: torch.Tensor,
-        eps: Union[int, float] = 1E-10
+        eps: Union[int, float] = 0.
 ) -> torch.Tensor:
     normed_diff = (pred_mean - target + eps) / (pred_stddev + eps)
     cdf = _normal_dist.cdf(normed_diff)
