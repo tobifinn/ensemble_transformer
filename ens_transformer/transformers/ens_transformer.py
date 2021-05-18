@@ -25,8 +25,7 @@
 
 # System modules
 import logging
-from typing import Union, Tuple
-from math import sqrt
+from typing import Union
 
 # External modules
 import torch
@@ -80,5 +79,5 @@ class EnsTransformer(BaseTransformer):
         norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
-        weights = self._solve_lin(hessian, moment_matrix)
+        weights = self._solve_lin(hessian, moment_matrix) + self.identity
         return weights
