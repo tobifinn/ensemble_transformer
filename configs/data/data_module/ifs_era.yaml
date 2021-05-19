@@ -5,4 +5,4 @@ include_vars: ${data.include_vars}
 batch_size: ${batch_size}
 num_workers: ${num_workers}
 pin_memory: true
-subsample_size: 20
+subsample_size: ${data.ens_mems}
