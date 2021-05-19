@@ -69,7 +69,7 @@ class IFSERADataset(Dataset):
         ifs_tensor = self.ifs[idx].values
         if self.subsample_size is not None:
             ens_idx = np.random.choice(
-                ifs_tensor, size=self.subsample_size, replace=False
+                ifs_tensor.shape[1], size=self.subsample_size, replace=False
             )
             ifs_tensor = ifs_tensor[:, ens_idx]
         if self.input_transform is not None:
