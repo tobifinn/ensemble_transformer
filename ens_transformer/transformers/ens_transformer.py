@@ -57,15 +57,17 @@ class EnsTransformer(BaseTransformer):
             same_key_query=same_key_query,
             ens_mems=ens_mems
         )
-        self.reg_value = torch.nn.Parameter(torch.ones(1, channels, 1, 1))
+        self.reg_value = torch.nn.Parameter(torch.ones(channels))
 
     def _solve_lin(
             self,
             hessian: torch.Tensor,
             moment_matrix: torch.Tensor
     ) -> torch.Tensor:
-        reg_lam = F.softplus(self.reg_value)
-        hessian_reg = hessian + (reg_lam + 1E-8) * self.identity
+        reg_lam = F.softplus(self.reg_value)[:, None, None]
+        id_matrix = torch.eye(hessian.shape[-1])[None, :, :]
+        reg_lam = reg_lam * id_matrix.to(hessian)
+        hessian_reg = hessian + reg_lam
         weights, _ = torch.solve(moment_matrix, hessian_reg)
         return weights
 
@@ -79,5 +81,7 @@ class EnsTransformer(BaseTransformer):
         norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
-        weights = self._solve_lin(hessian, moment_matrix) + self.identity
+        weights = self._solve_lin(hessian, moment_matrix)
+        id_matrix = torch.eye(hessian.shape[-1]).to(weights)
+        weights = id_matrix + weights
         return weights
