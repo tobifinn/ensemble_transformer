@@ -47,11 +47,10 @@ def main_train(cfg: DictConfig) -> None:
     else:
         callbacks = None
 
+    logger = None
     if cfg.logger is not None:
         for _, logger_cfg in cfg.logger.items():
             logger: LightningLoggerBase = instantiate(logger_cfg)
-    else:
-        logger = None
 
     trainer: pl.Trainer = instantiate(
         cfg.trainer,
