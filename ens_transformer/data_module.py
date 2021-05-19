@@ -37,6 +37,7 @@ class IFSERADataModule(pl.LightningDataModule):
             normalizer_path: Union[None, str] =
                 '../data/interim/normalizers.pt',
             include_vars: Union[None, Iterable[str]] = None,
+            subsample_size: Union[None, int] = None,
             num_workers: int = 4,
             pin_memory: bool = True
     ):
@@ -48,6 +49,7 @@ class IFSERADataModule(pl.LightningDataModule):
         self.include_vars = include_vars
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.subsample_size = subsample_size
 
     @staticmethod
     def _init_transforms(
@@ -71,6 +73,7 @@ class IFSERADataModule(pl.LightningDataModule):
             include_vars=self.include_vars,
             input_transform=input_transform,
             target_transform=target_transform,
+            subsample_size=None
         )
         self.lats = self.ds_test.ifs['latitude'].values
         train_full = IFSERADataset(
@@ -78,13 +81,23 @@ class IFSERADataModule(pl.LightningDataModule):
             era_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
             include_vars=self.include_vars,
             input_transform=input_transform,
-            target_transform=target_transform
+            target_transform=target_transform,
+            subsample_size=self.subsample_size
         )
         len_eval = int(len(train_full) * self._split_perc)
         len_train = len(train_full)-len_eval
         self.ds_train, self.ds_eval = random_split(
             train_full, [len_train, len_eval]
         )
+        val_full = IFSERADataset(
+            ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
+            era_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
+            include_vars=self.include_vars,
+            input_transform=input_transform,
+            target_transform=target_transform,
+            subsample_size=None
+        )
+        self.ds_eval.dataset = val_full
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
