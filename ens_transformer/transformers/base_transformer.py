@@ -76,9 +76,6 @@ class BaseTransformer(torch.nn.Module):
                 channels=channels,
                 key_activation=key_activation,
             )
-        identity = torch.zeros(1, 1, ens_mems, ens_mems)
-        identity[..., np.arange(ens_mems), np.arange(ens_mems)] = 1.
-        self.identity = torch.nn.Parameter(identity, requires_grad=False)
 
     @staticmethod
     def _construct_value_layer(
