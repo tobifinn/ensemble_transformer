@@ -15,6 +15,7 @@ import logging
 
 # External modules
 import torch
+import torch.nn.functional as F
 import numpy as np
 
 # Internal modules
@@ -31,9 +32,12 @@ class ApproxTransformer(EnsTransformer):
     ) -> torch.Tensor:
         key = key-key.mean(dim=1, keepdim=True)
         query = query-query.mean(dim=1, keepdim=True)
-        resid = query - self._dot_product(key, self.identity)
+        query_pred = torch.einsum('bichw,ij->bjchw', key, self.identity[0, 0])
+        resid = query - query_pred
         norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
         hessian = key.pow(2).sum(dim=(-2, -1)) / norm_factor
+        hessian = torch.diag_embed(hessian.transpose(-1, -2))
+        hessian = hessian + F.softplus(self.reg_value)
         moment_matrix = self._dot_product(key, resid) / norm_factor
         delta_weights = moment_matrix / hessian
         weights = self.identity - delta_weights
