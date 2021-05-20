@@ -40,6 +40,7 @@ class BaseNet(pl.LightningModule):
             embedding: DictConfig,
             in_channels: int = 3,
             hidden_channels: int = 64,
+            output_channels: int = 1,
             n_transformers: int = 1,
             learning_rate: float = 1E-3,
             loss_str: str = 'crps'
@@ -58,7 +59,7 @@ class BaseNet(pl.LightningModule):
         )
         self.output_layer = EnsConv2d(
             in_channels=hidden_channels,
-            out_channels=1,
+            out_channels=output_channels,
             kernel_size=1
         )
 
