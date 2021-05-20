@@ -23,7 +23,7 @@ from omegaconf import DictConfig
 import numpy as np
 
 # Internal modules
-from .layers import EnsConv2d, EarthPadding
+from .layers import EnsConv2d
 from .measures import crps_loss, WeightedScore
 
 
@@ -36,6 +36,7 @@ class TransformerNet(pl.LightningModule):
             optimizer: DictConfig,
             scheduler: DictConfig,
             transformer: DictConfig,
+            embedding: DictConfig,
             in_channels: int = 3,
             hidden_channels: int = 64,
             n_transformers: int = 1,
@@ -51,14 +52,7 @@ class TransformerNet(pl.LightningModule):
             hidden_channels=hidden_channels,
             n_transformers=n_transformers
         )
-        self.in_layer = torch.nn.Sequential(
-            EarthPadding(3),
-            EnsConv2d(
-                in_channels=in_channels,
-                out_channels=hidden_channels,
-                kernel_size=7
-            )
-        )
+        self.embedding = instantiate(embedding, in_channels=in_channels)
         self.output_layer = EnsConv2d(
             in_channels=hidden_channels,
             out_channels=1,
@@ -122,7 +116,7 @@ class TransformerNet(pl.LightningModule):
         return optimizer
 
     def forward(self, input_tensor) -> torch.Tensor:
-        transformed_tensor = self.in_layer(input_tensor)
+        transformed_tensor = self.embedding(input_tensor)
         for transformer in self.transformers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
