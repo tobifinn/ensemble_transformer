@@ -117,14 +117,16 @@ class TransformerNet(pl.LightningModule):
             }
         return optimizer
 
-    def forward(self, input_tensor) -> torch.Tensor:
-        transformed_tensor = self.embedding(input_tensor)
+    def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        embedded_tensor = self.embedding(input_tensor)
+        transformed_tensor = embedded_tensor
         for transformer in self.transformers:
             transformed_tensor = transformer(
                 in_tensor=transformed_tensor,
             )
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
-        return output_tensor
+        embedded_tensor = embedded_tensor.view(*embedded_tensor.shape[:2], -1)
+        return output_tensor, embedded_tensor
 
     def training_step(
             self,
@@ -132,7 +134,7 @@ class TransformerNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble = self(in_tensor)
+        output_ensemble, _ = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
@@ -140,13 +142,28 @@ class TransformerNet(pl.LightningModule):
         self.log('loss', loss, prog_bar=True)
         return loss
 
+    def _log_embedding(self, embedded_ens: torch.Tensor):
+        labels = torch.arange(self.hparams['batch_size'],
+                              device=self.device)
+        labels = labels.view(self.hparams['batch_size'], 1)
+        labels = torch.ones_like(embedded_ens[..., 0]) * labels
+
+        embedded_ens = embedded_ens.view(
+            -1, embedded_ens.shape[-1]
+        )
+        labels = labels.view(-1)
+        self.logger.experiment.add_embedding(
+            embedded_ens, metadata=labels, tag='weather_embedding',
+            global_step=self.global_step
+        )
+
     def validation_step(
             self,
             batch: Tuple[torch.Tensor, torch.Tensor],
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble = self(in_tensor)
+        output_ensemble, output_embedding = self(in_tensor)
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
@@ -159,4 +176,6 @@ class TransformerNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log('hp_metric', loss)
+        if batch_idx == 0 and hasattr(self.logger, 'add_embedding'):
+            self._log_embedding(output_embedding)
         return crps
