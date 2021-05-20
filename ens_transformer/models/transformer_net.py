@@ -31,8 +31,8 @@ class TransformerNet(BaseNet):
             cfg: DictConfig,
             hidden_channels: int = 64,
             n_transformers: int = 1
-    ) -> torch.nn.ModuleList:
-        transformer_list = torch.nn.ModuleList()
+    ) -> torch.nn.Sequential:
+        transformer_list = []
         for idx in range(n_transformers):
             curr_transformer = get_class(cfg._target_)(
                 channels=hidden_channels,
@@ -42,4 +42,5 @@ class TransformerNet(BaseNet):
                 value_layer=cfg.value_layer
             )
             transformer_list.append(curr_transformer)
-        return transformer_list
+        transformers = torch.nn.Sequential(*transformer_list)
+        return transformers
