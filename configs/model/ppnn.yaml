@@ -1,5 +1,7 @@
 defaults:
   - embedding: default
+  - optimizer: adam
+  - scheduler: plateau
 
 _recursive_: False
 _target_: ens_transformer.models.PPNNet
