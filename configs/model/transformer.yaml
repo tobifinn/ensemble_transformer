@@ -4,14 +4,14 @@ defaults:
   - transformer: softmax
 
 _recursive_: False
-_target_: ens_transformer.transformer_net.TransformerNet
+_target_: ens_transformer.models.TransformerNet
 n_transformers: 1
 hidden_channels: 64
 loss_str: crps
 learning_rate: ${learning_rate}
 
 embedding:
-  _target_: ens_transformer.embedding.ModelEmbedding
+  _target_: ens_transformer.models.ModelEmbedding
   n_channels:
     - 64
     - 64
