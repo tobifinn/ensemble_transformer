@@ -94,6 +94,14 @@ class BaseNet(pl.LightningModule):
     ) -> torch.nn.Sequential:
         pass
 
+    @staticmethod
+    def _estimate_mean_std(
+            output_ensemble: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        output_mean = output_ensemble.mean(dim=1)
+        output_std = output_ensemble.std(dim=1, unbiased=True)
+        return output_mean, output_std
+
     def configure_optimizers(
             self
     ) -> Union[torch.optim.Optimizer, Dict[str, Any]]:
@@ -125,8 +133,7 @@ class BaseNet(pl.LightningModule):
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
         output_ensemble, _ = self(in_tensor)
-        output_mean = output_ensemble.mean(dim=1)
-        output_std = output_ensemble.std(dim=1, unbiased=True)
+        output_mean, output_std = self._estimate_mean_std(output_ensemble)
         prediction = (output_mean, output_std)
         loss = self.loss_function(prediction, target_tensor).mean()
         self.log('loss', loss, prog_bar=True)
@@ -154,8 +161,7 @@ class BaseNet(pl.LightningModule):
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
         output_ensemble, output_embedding = self(in_tensor)
-        output_mean = output_ensemble.mean(dim=1)
-        output_std = output_ensemble.std(dim=1, unbiased=True)
+        output_mean, output_std = self._estimate_mean_std(output_ensemble)
         prediction = (output_mean, output_std)
         loss = self.loss_function(prediction, target_tensor).mean()
         crps = self.metrics['crps'](prediction, target_tensor).mean()
