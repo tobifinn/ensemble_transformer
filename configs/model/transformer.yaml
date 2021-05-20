@@ -11,12 +11,3 @@ hidden_channels: 64
 output_channels: 1
 loss_str: crps
 learning_rate: ${learning_rate}
-
-embedding:
-  _target_: ens_transformer.models.ModelEmbedding
-  n_channels:
-    - 64
-    - 64
-    - 64
-  kernel_size: 5
-  activation: torch.nn.SELU
