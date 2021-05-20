@@ -42,13 +42,15 @@ logger = logging.getLogger(__name__)
 class EnsTransformer(BaseTransformer):
     def __init__(
             self,
-            channels: int,
+            in_channels: int = 64,
+            channels: int = 64,
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False,
     ):
         super().__init__(
+            in_channels=in_channels,
             channels=channels,
             activation=activation,
             value_layer=value_layer,
