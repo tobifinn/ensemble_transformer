@@ -29,11 +29,12 @@ class TransformerNet(BaseNet):
     @staticmethod
     def _init_transformers(
             cfg: DictConfig,
-            in_channels: int = 64,
+            embedded_channels: int = 64,
             hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
         transformer_list = []
+        in_channels = embedded_channels
         for idx in range(n_transformers):
             curr_transformer = get_class(cfg._target_)(
                 in_channels=in_channels,

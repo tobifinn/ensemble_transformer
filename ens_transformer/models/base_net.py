@@ -53,7 +53,7 @@ class BaseNet(pl.LightningModule):
         self.embedding = instantiate(embedding, in_channels=in_channels)
         self.transformers = self._init_transformers(
             transformer,
-            in_channels=embedding.n_channels[-1],
+            embedded_channels=embedding.n_channels[-1],
             hidden_channels=hidden_channels,
             n_transformers=n_transformers
         )
@@ -89,7 +89,7 @@ class BaseNet(pl.LightningModule):
     @abstractmethod
     def _init_transformers(
             cfg: DictConfig,
-            in_channels: int = 64,
+            embedded_channels: int = 64,
             hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
