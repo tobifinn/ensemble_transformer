@@ -55,7 +55,9 @@ class PPNNet(BaseNet):
     def _estimate_mean_std(
             output_ensemble: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return output_ensemble[:, 0], output_ensemble[:, 1]
+        output_mean = output_ensemble[:, 0]
+        output_stddev = torch.exp(0.5 * output_ensemble[:, 1])
+        return output_mean, output_stddev
 
     def forward(
             self, input_tensor: torch.Tensor
