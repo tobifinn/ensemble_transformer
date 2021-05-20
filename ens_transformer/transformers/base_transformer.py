@@ -78,6 +78,7 @@ class BaseTransformer(torch.nn.Module):
                 channels=channels,
                 key_activation=key_activation,
             )
+        self.gamma = torch.nn.Parameter(torch.zeros(1, 1, channels, 1, 1))
 
     @staticmethod
     def _construct_value_layer(
@@ -159,4 +160,5 @@ class BaseTransformer(torch.nn.Module):
         transformed = self._apply_weights(value, weights)
         if self.activation is not None:
             transformed = self.activation(transformed)
-        return transformed
+        out_tensor = in_tensor + self.gamma * transformed
+        return out_tensor
