@@ -66,7 +66,7 @@ class PPNNet(BaseNet):
         in_std = input_tensor[..., [0], :, :].std(dim=1)
         in_embedded = torch.cat([mean_embedding, in_mean, in_std], dim=-3)
         transformed_tensor = self.transformers(in_embedded)
-        output_tensor = self.output_net(transformed_tensor)
+        output_tensor = self.output_layer(transformed_tensor)
         output_tensor = output_tensor.view(-1, 2, 32, 64)
         embedded_tensor = embedded_tensor.view(*embedded_tensor.shape[:2], -1)
         return output_tensor, embedded_tensor
