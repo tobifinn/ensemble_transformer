@@ -7,6 +7,7 @@ _recursive_: False
 _target_: ens_transformer.transformer_net.TransformerNet
 n_transformers: 1
 hidden_channels: 64
+loss_str: crps
 learning_rate: ${learning_rate}
 
 embedding:

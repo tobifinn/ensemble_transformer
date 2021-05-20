@@ -41,6 +41,7 @@ class TransformerNet(pl.LightningModule):
             hidden_channels: int = 64,
             n_transformers: int = 1,
             learning_rate: float = 1E-3,
+            loss_str: str = 'crps'
     ):
         super().__init__()
         self.learning_rate = learning_rate
@@ -72,6 +73,7 @@ class TransformerNet(pl.LightningModule):
                 lambda prediction, target: prediction[1].pow(2),
             )
         })
+        self.loss_function = self.metrics[loss_str]
         self.optimizer_cfg = optimizer
         self.scheduler_cfg = scheduler
         self.save_hyperparameters()
@@ -134,7 +136,7 @@ class TransformerNet(pl.LightningModule):
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
-        loss = self.metrics['crps'](prediction, target_tensor).mean()
+        loss = self.loss_function(prediction, target_tensor).mean()
         self.log('loss', loss, prog_bar=True)
         return loss
 
@@ -148,11 +150,13 @@ class TransformerNet(pl.LightningModule):
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
         prediction = (output_mean, output_std)
+        loss = self.loss_function(prediction, target_tensor).mean()
         crps = self.metrics['crps'](prediction, target_tensor).mean()
         rmse = self.metrics['mse'](prediction, target_tensor).mean().sqrt()
         spread = self.metrics['var'](prediction, target_tensor).mean().sqrt()
-        self.log('eval_loss', crps, prog_bar=True)
+        self.log('eval_loss', loss, prog_bar=True)
+        self.log('eval_crps', crps, prog_bar=True)
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
-        self.log('hp_metric', crps)
+        self.log('hp_metric', loss)
         return crps
