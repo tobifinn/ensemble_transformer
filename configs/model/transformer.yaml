@@ -8,3 +8,12 @@ _target_: ens_transformer.transformer_net.TransformerNet
 n_transformers: 1
 hidden_channels: 64
 learning_rate: ${learning_rate}
+
+embedding:
+  _target_: ens_transformer.embedding.ModelEmbedding
+  n_channels:
+    - 64
+    - 64
+    - 64
+  filter_size: 5
+  activation: torch.nn.SELU
