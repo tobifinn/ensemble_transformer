@@ -90,9 +90,9 @@ class BaseTransformer(torch.nn.Module):
             conv_layer = EnsConv2d(
                 in_channels=in_channels,
                 out_channels=channels,
-                kernel_size=5
+                kernel_size=1
             )
-            layers = [EarthPadding(pad_size=2), conv_layer]
+            layers.append(conv_layer)
         return torch.nn.Sequential(*layers)
 
     @staticmethod
@@ -104,11 +104,9 @@ class BaseTransformer(torch.nn.Module):
         conv_layer = EnsConv2d(
             in_channels=in_channels,
             out_channels=channels,
-            kernel_size=5
+            kernel_size=1
         )
-        torch.nn.init.kaiming_normal_(conv_layer.conv2d.base_layer.weight)
-        torch.nn.init.constant_(conv_layer.conv2d.base_layer.bias, 0.)
-        layers = [EarthPadding(pad_size=2), conv_layer]
+        layers = [conv_layer]
         if key_activation:
             layers.append(get_class(key_activation)(inplace=True))
         return torch.nn.Sequential(*layers)
