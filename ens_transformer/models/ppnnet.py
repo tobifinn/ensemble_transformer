@@ -27,7 +27,7 @@ from ..layers import EarthPadding
 logger = logging.getLogger(__name__)
 
 
-class PPNN(BaseNet):
+class PPNNet(BaseNet):
     @staticmethod
     def _init_transformers(
             cfg: DictConfig,
