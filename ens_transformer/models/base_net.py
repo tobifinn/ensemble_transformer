@@ -161,7 +161,7 @@ class BaseNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble, output_embedding = self(in_tensor)
+        output_ensemble, _ = self(in_tensor)
         output_mean, output_std = self._estimate_mean_std(output_ensemble)
         prediction = (output_mean, output_std)
         loss = self.loss_function(prediction, target_tensor).mean()
@@ -173,6 +173,4 @@ class BaseNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log('hp_metric', loss)
-        if batch_idx == 0 and hasattr(self.logger.experiment, 'add_embedding'):
-            self._log_embedding(output_embedding)
         return crps
