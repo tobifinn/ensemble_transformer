@@ -1,4 +1,5 @@
 defaults:
+  - embedding: default
   - optimizer: adam
   - scheduler: plateau
   - transformer: softmax
@@ -17,5 +18,5 @@ embedding:
     - 64
     - 64
     - 64
-  filter_size: 5
+  kernel_size: 5
   activation: torch.nn.SELU
