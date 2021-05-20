@@ -49,7 +49,8 @@ __all__ = [
 class BaseTransformer(torch.nn.Module):
     def __init__(
             self,
-            channels: int,
+            in_channels: int = 64,
+            channels: int = 64,
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
@@ -61,10 +62,12 @@ class BaseTransformer(torch.nn.Module):
         else:
             self.activation = None
         self.value_layer = self._construct_value_layer(
+            in_channels=in_channels,
             channels=channels,
             value_layer=value_layer
         )
         self.key_layer = self._construct_branch_layer(
+            in_channels=in_channels,
             channels=channels,
             key_activation=key_activation,
         )
@@ -78,31 +81,28 @@ class BaseTransformer(torch.nn.Module):
 
     @staticmethod
     def _construct_value_layer(
-            channels: int,
+            in_channels: int = 64,
+            channels: int = 64,
             value_layer: bool = True,
     ) -> torch.nn.Sequential:
         layers = []
         if value_layer:
             conv_layer = EnsConv2d(
-                in_channels=channels,
+                in_channels=in_channels,
                 out_channels=channels,
                 kernel_size=5
             )
-            torch.nn.init.kaiming_normal_(
-                conv_layer.conv2d.base_layer.weight,
-                nonlinearity='relu'
-            )
-            torch.nn.init.constant_(conv_layer.conv2d.base_layer.bias, 0.)
             layers = [EarthPadding(pad_size=2), conv_layer]
         return torch.nn.Sequential(*layers)
 
     @staticmethod
     def _construct_branch_layer(
-            channels: int,
+            in_channels: int = 64,
+            channels: int = 64,
             key_activation: Union[None, str] = None,
     ) -> torch.nn.Sequential:
         conv_layer = EnsConv2d(
-            in_channels=channels,
+            in_channels=in_channels,
             out_channels=channels,
             kernel_size=5
         )
