@@ -173,6 +173,6 @@ class BaseNet(pl.LightningModule):
         self.log('eval_rmse', rmse, prog_bar=True)
         self.log('eval_spread', spread, prog_bar=True)
         self.log('hp_metric', loss)
-        if batch_idx == 0 and hasattr(self.logger, 'add_embedding'):
+        if batch_idx == 0 and hasattr(self.logger.experiment, 'add_embedding'):
             self._log_embedding(output_embedding)
         return crps
