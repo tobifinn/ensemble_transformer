@@ -1,6 +1,5 @@
 _target_: ens_transformer.transformers.KernelTransformer
-activation: torch.nn.ReLU
-key_activation: torch.nn.ReLU
+activation: torch.nn.SELU
+key_activation: torch.nn.SELUKernel
 same_key_query: false
 value_layer: true
-ens_mems: ${data.ens_mems}
