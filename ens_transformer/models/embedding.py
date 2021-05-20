@@ -31,22 +31,22 @@ class ModelEmbedding(torch.nn.Module):
             self,
             in_channels: int = 3,
             n_channels: Iterable = (64, 64, 64),
-            filter_size: int = 5,
+            kernel_size: int = 5,
             activation: str = 'torch.nn.SELU'
     ):
         super().__init__()
         modules = []
         old_channels = in_channels
         for curr_channel in n_channels:
-            modules.append(EarthPadding((filter_size-1)//2))
+            modules.append(EarthPadding((kernel_size-1)//2))
             modules.append(EnsConv2d(
-                old_channels, curr_channel, kernel_size=filter_size
+                old_channels, curr_channel, kernel_size=kernel_size
             ))
             modules.append(get_class(activation)(inplace=True))
             old_channels = curr_channel
         self.n_channels = n_channels
         self.activation = activation
-        self.filter_size = filter_size
+        self.kernel_size = kernel_size
         self.net = torch.nn.Sequential(
             *modules
         )
