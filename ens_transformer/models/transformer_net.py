@@ -23,8 +23,8 @@ from omegaconf import DictConfig
 import numpy as np
 
 # Internal modules
-from .layers import EnsConv2d
-from .measures import crps_loss, WeightedScore
+from ..layers import EnsConv2d
+from ..measures import crps_loss, WeightedScore
 
 
 logger = logging.getLogger(__name__)
