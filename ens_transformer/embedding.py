@@ -29,20 +29,21 @@ logger = logging.getLogger(__name__)
 class ModelEmbedding(torch.nn.Module):
     def __init__(
             self,
+            in_channels: int = 3,
             n_channels: Iterable = (64, 64, 64),
             filter_sizes: Iterable = (5, 5, 5),
             activation: str = 'torch.nn.SELU'
     ):
         super().__init__()
         modules = []
-        old_feat = 3
+        old_channels = in_channels
         for idx, curr_channel in n_channels:
             modules.append(EarthPadding((filter_sizes[idx]-1)//2))
             modules.append(EnsConv2d(
-                old_feat, curr_channel, kernel_size=filter_sizes[idx]
+                old_channels, curr_channel, kernel_size=filter_sizes[idx]
             ))
             modules.append(get_class(activation)(inplace=True))
-            old_feat = curr_channel
+            old_channels = curr_channel
         self.n_channels = n_channels
         self.activation = activation
         self.filter_size = filter_sizes
