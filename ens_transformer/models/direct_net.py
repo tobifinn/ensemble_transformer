@@ -29,17 +29,20 @@ class DirectNet(BaseNet):
     @staticmethod
     def _init_transformers(
             cfg: DictConfig,
+            in_channels: int = 64,
             hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
         transformer_list = []
+        curr_channels = in_channels
         for idx in range(n_transformers):
             submodule = torch.nn.Sequential(
                 EarthPadding((cfg.kernel_size-1)//2),
-                EnsConv2d(hidden_channels, hidden_channels,
+                EnsConv2d(curr_channels, hidden_channels,
                           kernel_size=cfg.kernel_size, padding=0),
                 get_class(cfg.activation)(inplace=True)
             )
+            curr_channels = hidden_channels
             transformer_list.append(submodule)
         transformers = torch.nn.Sequential(*transformer_list)
         return transformers
