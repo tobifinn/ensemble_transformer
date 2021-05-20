@@ -89,7 +89,7 @@ class BaseNet(pl.LightningModule):
             cfg: DictConfig,
             hidden_channels: int = 64,
             n_transformers: int = 1
-    ) -> torch.nn.ModuleList:
+    ) -> torch.nn.Sequential:
         pass
 
     def configure_optimizers(
@@ -111,11 +111,7 @@ class BaseNet(pl.LightningModule):
 
     def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         embedded_tensor = self.embedding(input_tensor)
-        transformed_tensor = embedded_tensor
-        for transformer in self.transformers:
-            transformed_tensor = transformer(
-                in_tensor=transformed_tensor,
-            )
+        transformed_tensor = self.transformers(embedded_tensor)
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
         embedded_tensor = embedded_tensor.view(*embedded_tensor.shape[:2], -1)
         return output_tensor, embedded_tensor
