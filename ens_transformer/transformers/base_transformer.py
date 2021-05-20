@@ -50,8 +50,8 @@ class BaseTransformer(torch.nn.Module):
     def __init__(
             self,
             channels: int,
-            activation: Union[None, str] = None,
-            key_activation: Union[None, str] = 'torch.nn.ReLU',
+            activation: Union[None, str] = 'torch.nn.SELU',
+            key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False,
             ens_mems: int = 50
