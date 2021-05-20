@@ -55,7 +55,6 @@ class EnsTransformer(BaseTransformer):
             value_layer=value_layer,
             key_activation=key_activation,
             same_key_query=same_key_query,
-            ens_mems=ens_mems
         )
         self.reg_value = torch.nn.Parameter(torch.ones(channels))
 
