@@ -78,9 +78,6 @@ class EnsTransformer(BaseTransformer):
             key: torch.Tensor,
             query: torch.Tensor
     ) -> torch.Tensor:
-        if self.branch_perturbations:
-            key = key-key.mean(dim=1, keepdim=True)
-            query = query-query.mean(dim=1, keepdim=True)
         norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
