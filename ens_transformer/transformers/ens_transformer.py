@@ -48,6 +48,7 @@ class EnsTransformer(BaseTransformer):
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False,
+            branch_perturbations: bool = True
     ):
         super().__init__(
             in_channels=in_channels,
@@ -57,6 +58,7 @@ class EnsTransformer(BaseTransformer):
             key_activation=key_activation,
             same_key_query=same_key_query,
         )
+        self.branch_perturbations = branch_perturbations
         self.reg_value = torch.nn.Parameter(torch.ones(channels))
 
     def _solve_lin(
@@ -76,8 +78,9 @@ class EnsTransformer(BaseTransformer):
             key: torch.Tensor,
             query: torch.Tensor
     ) -> torch.Tensor:
-        key = key-key.mean(dim=1, keepdim=True)
-        query = query-query.mean(dim=1, keepdim=True)
+        if self.branch_perturbations:
+            key = key-key.mean(dim=1, keepdim=True)
+            query = query-query.mean(dim=1, keepdim=True)
         norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
