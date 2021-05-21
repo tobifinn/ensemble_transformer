@@ -38,14 +38,19 @@ class PPNNet(BaseNet):
         transformer_list = []
         in_channels = embedded_channels + 2
         for idx in range(n_transformers):
-            submodule = torch.nn.Sequential(
-                EarthPadding((cfg.kernel_size - 1) // 2),
+            curr_transformer = []
+            if cfg.kernel_size > 1:
+                curr_transformer.append(
+                    EarthPadding(pad_size=(cfg.kernel_size-1) // 2)
+                )
+            curr_transformer.append(
                 torch.nn.Conv2d(
                     in_channels, hidden_channels,
                     kernel_size=cfg.kernel_size, padding=0
                 ),
-                get_class(cfg.activation)(inplace=True)
             )
+            curr_transformer.append(get_class(cfg.activation)(inplace=True))
+            submodule = torch.nn.Sequential(*curr_transformer)
             in_channels = hidden_channels
             transformer_list.append(submodule)
         transformers = torch.nn.Sequential(*transformer_list)
