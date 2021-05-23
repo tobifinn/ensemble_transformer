@@ -47,8 +47,7 @@ class EnsTransformer(BaseTransformer):
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
-            same_key_query: bool = False,
-            branch_perturbations: bool = True
+            same_key_query: bool = False
     ):
         super().__init__(
             in_channels=in_channels,
@@ -58,7 +57,6 @@ class EnsTransformer(BaseTransformer):
             key_activation=key_activation,
             same_key_query=same_key_query,
         )
-        self.branch_perturbations = branch_perturbations
         self.reg_value = torch.nn.Parameter(torch.ones(channels))
 
     def _solve_lin(

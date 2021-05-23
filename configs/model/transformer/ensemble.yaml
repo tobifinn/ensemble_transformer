@@ -3,4 +3,3 @@ activation: torch.nn.SELU
 key_activation: torch.nn.SELU
 same_key_query: false
 value_layer: true
-branch_perturbations: true
