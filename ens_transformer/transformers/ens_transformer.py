@@ -80,6 +80,6 @@ class EnsTransformer(BaseTransformer):
         hessian = self._dot_product(key, key) / norm_factor
         moment_matrix = self._dot_product(key, query) / norm_factor
         weights = self._solve_lin(hessian, moment_matrix)
-        id_matrix = torch.eye(hessian.shape[-1]).to(weights)
-        weights = id_matrix + weights
+        #id_matrix = torch.eye(hessian.shape[-1]).to(weights)
+        #weights = id_matrix + weights
         return weights
