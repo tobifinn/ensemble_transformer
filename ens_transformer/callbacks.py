@@ -29,4 +29,4 @@ class ValidationOnStartCallback(Callback):
         pass
 
     def on_train_start(self, trainer: Trainer, pl_module):
-        return trainer.run_evaluation(test_mode=False)
+        return trainer.run_evaluation()
