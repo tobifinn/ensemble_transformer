@@ -1,7 +1,7 @@
 _recursive_: true
 _target_: pytorch_lightning.Trainer
 checkpoint_callback: true
-gpus: 0
+gpus: 1
 progress_bar_refresh_rate: 1
 max_epochs: 100
 min_epochs: 10
