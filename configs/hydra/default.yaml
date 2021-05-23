@@ -1,5 +1,6 @@
-  run:
-    dir: ../data/models/${exp_name}
-  sweep:
-    dir: ../data/models/${exp_name}
-    subdir: ${hydra.job.num}
+run:
+  dir: ../data/models/${exp_name}
+sweep:
+  dir: ../data/models/${exp_name}
+  subdir: ${hydra.job.num}
+output_subdir: hydra
