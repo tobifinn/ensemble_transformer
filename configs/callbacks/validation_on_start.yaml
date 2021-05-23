@@ -1,3 +1,0 @@
-validation_on_start:
-  _target_: ens_transformer.callbacks.ValidationOnStartCallback
-  dirpath: ../data/models/${exp_name}

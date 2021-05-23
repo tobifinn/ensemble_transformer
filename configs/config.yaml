@@ -7,7 +7,7 @@ defaults:
   - callbacks:
       - learning_rate_monitor
       - model_checkpoint
-      - validation_on_start
+      - save_before_start
   - logger:
       - tensorboard
 

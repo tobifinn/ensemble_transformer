@@ -26,7 +26,7 @@ from pytorch_lightning.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
-class ValidationOnStartCallback(Callback):
+class SaveBeforeStartCallback(Callback):
     # Based on https://github.com/PyTorchLightning/pytorch-lightning/issues/1715#issuecomment-642480058
     def __init__(self, dirpath: Optional[Union[str, Path]] = None):
         super().__init__()
