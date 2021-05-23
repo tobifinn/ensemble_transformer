@@ -36,4 +36,3 @@ class ValidationOnStartCallback(Callback):
         if self.dirpath is not None:
             ckpt_path = os.path.join(self.dirpath, 'before_train.ckpt')
             trainer.save_checkpoint(ckpt_path)
-        return trainer.run_evaluation()
