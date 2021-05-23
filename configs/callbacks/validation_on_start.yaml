@@ -1,0 +1,2 @@
+validation_on_start:
+  _target_: ens_transformer.callbacks.ValidationOnStartCallback
