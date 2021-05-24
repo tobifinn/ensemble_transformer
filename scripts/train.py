@@ -16,9 +16,11 @@ import logging
 
 # External modules
 import hydra
-import matplotlib.figure
+from hydra.core.hydra_config import HydraConfig
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import DictConfig
+
+import matplotlib.figure
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import LightningLoggerBase
@@ -68,8 +70,11 @@ def main_train(cfg: DictConfig) -> None:
             max_lr=0.1
         )
         fig: matplotlib.figure.Figure = lr_finder.plot(suggest=True)
-        lr_path = os.path.join(cfg.hydra.run.dir, cfg.hydra.output_subdir,
-                               'learning_rate.png')
+
+        lr_path = os.path.join(
+            HydraConfig.get().run.dir, HydraConfig.get().output_subdir,
+            'learning_rate.png'
+        )
         fig.savefig(lr_path)
         new_lr = lr_finder.suggestion() * 0.5
         network.learning_rate = network.hparams['learning_rate'] = new_lr
