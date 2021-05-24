@@ -63,6 +63,9 @@ parser.add_argument(
 
 
 def predict_dataset(args: argparse.Namespace):
+    device = torch.device(
+            'cuda:0' if torch.cuda.is_available() else 'cpu'
+    )
     model_path = os.path.join(args.model_path, args.exp_name)
     with initialize(config_path=os.path.join(model_path, 'hydra')):
         cfg = compose('config.yaml')
@@ -76,18 +79,23 @@ def predict_dataset(args: argparse.Namespace):
     )
     ens_net = ens_net.load_from_checkpoint(
         os.path.join(model_path, 'last.ckpt'),
+        map_location=device,
     )
 
     data_module: IFSERADataModule = instantiate(
         cfg['data']['data_module'],
         data_dir=args.data_dir,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        pin_memory=True if torch.cuda.is_available() else False
     )
     data_module.setup()
 
-    trainer: pl.Trainer = instantiate(
-        cfg.trainer,
-    )
+    prediction = []
+    for ifs_batch, _ in tqdm(iter(data_module.test_dataloader())):
+        ifs_batch = ifs_batch.to(device)
+        with torch.no_grad():
+            prediction.append(ens_net(ifs_batch).cpu())
+    prediction = torch.cat(prediction, dim=0)
 
     try:
         norm_mean = data_module.ds_test.target_transform.transforms[1].mean
@@ -95,11 +103,6 @@ def predict_dataset(args: argparse.Namespace):
     except AttributeError:
         norm_mean = 0.
         norm_std = 1.
-
-    prediction = trainer.predict(
-        model=ens_net, dataloaders=data_module.predict_dataloader()
-    )[0]
-    prediction = torch.from_numpy(prediction)
 
     if isinstance(ens_net, PPNNet):
         output_mean, output_std = ens_net._estimate_mean_std(prediction)
