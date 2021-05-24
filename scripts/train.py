@@ -76,7 +76,7 @@ def main_train(cfg: DictConfig) -> None:
             'learning_rate.png'
         )
         fig.savefig(lr_path)
-        new_lr = lr_finder.suggestion() * 0.5
+        new_lr = lr_finder.suggestion()
         network.learning_rate = network.hparams['learning_rate'] = new_lr
         main_logger.info('Learning rate was set to {0:.2e}'.format(new_lr))
 
