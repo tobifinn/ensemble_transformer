@@ -58,9 +58,9 @@ class IFSERADataModule(pl.LightningDataModule):
         if normalizer_path is not None:
             normalizers = torch.load(normalizer_path)
             input_transform = Compose([to_tensor, normalizers['ifs']])
-            target_transform = Compose([to_tensor, normalizers['era']])
         else:
-            input_transform = target_transform = to_tensor
+            input_transform = to_tensor
+        target_transform = to_tensor
         return input_transform, target_transform
 
     def setup(self, stage: Optional[str] = None) -> None:
