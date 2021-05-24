@@ -12,6 +12,7 @@
 
 # System modules
 import os
+import logging
 
 # External modules
 import hydra
@@ -23,6 +24,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import LightningLoggerBase
 
 # Internal modules
+
+
+main_logger = logging.getLogger(__name__)
 
 
 @hydra.main(config_path='../configs', config_name='config')
@@ -48,15 +52,15 @@ def main_train(cfg: DictConfig) -> None:
     else:
         callbacks = None
 
-    logger = None
+    training_logger = None
     if cfg.logger is not None:
         for _, logger_cfg in cfg.logger.items():
-            logger: LightningLoggerBase = instantiate(logger_cfg)
+            training_logger: LightningLoggerBase = instantiate(logger_cfg)
 
     trainer: pl.Trainer = instantiate(
         cfg.trainer,
         callbacks=callbacks,
-        logger=logger
+        logger=training_logger
     )
     if cfg.tune_lr:
         lr_finder = trainer.tuner.lr_find(
@@ -69,6 +73,7 @@ def main_train(cfg: DictConfig) -> None:
         fig.savefig(lr_path)
         new_lr = lr_finder.suggestion() * 0.5
         network.learning_rate = network.hparams['learning_rate'] = new_lr
+        main_logger.info('Learning rate was set to {0:.2e}'.format(new_lr))
 
     trainer.fit(model=network, datamodule=data_module)
 
