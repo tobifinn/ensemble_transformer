@@ -113,21 +113,21 @@ def predict_dataset(args: argparse.Namespace):
         output_std = output_std * norm_std
         output_dataset = xr.Dataset(
             {
-                'mean': data_module.ds_test.era.copy(data=output_mean.numpy()),
-                'stddev': data_module.ds_test.era.copy(data=output_std.numpy())
+                'mean': data_module.ds_test.era5.copy(data=output_mean.numpy()),
+                'stddev': data_module.ds_test.era5.copy(data=output_std.numpy())
             }
         )
     else:
         prediction = prediction * norm_std + norm_mean
-        template_ds = data_module.ds_test.era.expand_dims(
+        template_ds = data_module.ds_test.era5.expand_dims(
             'ensemble', axis=1
         )
         output_dataset = xr.Dataset(
             {
-                'mean': data_module.ds_test.era.copy(
+                'mean': data_module.ds_test.era5.copy(
                     data=prediction.numpy().mean(axis=1)
                 ),
-                'stddev': data_module.ds_test.era.copy(
+                'stddev': data_module.ds_test.era5.copy(
                     data=prediction.numpy().std(axis=1, ddof=1)
                 ),
                 'particles': template_ds.copy(data=prediction.numpy())
