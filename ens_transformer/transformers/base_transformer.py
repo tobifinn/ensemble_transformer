@@ -49,8 +49,8 @@ __all__ = [
 class BaseTransformer(torch.nn.Module):
     def __init__(
             self,
-            in_channels: int = 64,
-            channels: int = 64,
+            n_channels: int = 64,
+            n_heads: int = 64,
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
@@ -62,35 +62,36 @@ class BaseTransformer(torch.nn.Module):
         else:
             self.activation = None
         self.value_layer = self._construct_value_layer(
-            in_channels=in_channels,
-            channels=channels,
+            n_channels=n_channels,
+            n_heads=n_heads,
             value_layer=value_layer
         )
         self.key_layer = self._construct_branch_layer(
-            in_channels=in_channels,
-            channels=channels,
+            n_channels=n_channels,
+            n_heads=n_heads,
             key_activation=key_activation,
         )
         if same_key_query:
             self.query_layer = self.key_layer
         else:
             self.query_layer = self._construct_branch_layer(
-                channels=channels,
+                n_channels=n_channels,
+                n_heads=n_heads,
                 key_activation=key_activation,
             )
         self.gamma = torch.nn.Parameter(torch.zeros(1, 1, channels, 1, 1))
 
     @staticmethod
     def _construct_value_layer(
-            in_channels: int = 64,
-            channels: int = 64,
+            n_channels: int = 64,
+            n_heads: int = 64,
             value_layer: bool = True,
     ) -> torch.nn.Sequential:
         layers = []
         if value_layer:
             conv_layer = EnsConv2d(
-                in_channels=in_channels,
-                out_channels=channels,
+                in_channels=n_channels,
+                out_channels=n_heads,
                 kernel_size=1
             )
             layers.append(conv_layer)
@@ -98,13 +99,13 @@ class BaseTransformer(torch.nn.Module):
 
     @staticmethod
     def _construct_branch_layer(
-            in_channels: int = 64,
-            channels: int = 64,
+            n_channels: int = 64,
+            n_heads: int = 64,
             key_activation: Union[None, str] = None,
     ) -> torch.nn.Sequential:
         conv_layer = EnsConv2d(
-            in_channels=in_channels,
-            out_channels=channels,
+            in_channels=n_channels,
+            out_channels=n_heads,
             kernel_size=1
         )
         layers = [conv_layer]
