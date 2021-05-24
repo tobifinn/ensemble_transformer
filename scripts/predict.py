@@ -87,7 +87,6 @@ def predict_dataset(args: argparse.Namespace):
 
     trainer: pl.Trainer = instantiate(
         cfg.trainer,
-        logger=logger
     )
 
     try:
