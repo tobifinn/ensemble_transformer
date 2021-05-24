@@ -79,7 +79,11 @@ class BaseTransformer(torch.nn.Module):
                 n_heads=n_heads,
                 key_activation=key_activation,
             )
-        self.gamma = torch.nn.Parameter(torch.zeros(1, 1, channels, 1, 1))
+        self.out_layer = EnsConv2d(
+            in_channels=n_heads, out_channels=n_channels, kernel_size=1,
+            padding=0
+        )
+        torch.nn.init.zeros_(self.out_layer.conv2d.base_layer.weight)
 
     @staticmethod
     def _construct_value_layer(
@@ -159,7 +163,7 @@ class BaseTransformer(torch.nn.Module):
         )
         weights = self._get_weights(key=key, query=query)
         transformed = self._apply_weights(value, weights)
+        out_tensor = in_tensor + self.out_layer(transformed)
         if self.activation is not None:
-            transformed = self.activation(transformed)
-        out_tensor = in_tensor + self.gamma * transformed
+            out_tensor = self.activation(out_tensor)
         return out_tensor

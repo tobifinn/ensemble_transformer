@@ -42,22 +42,22 @@ logger = logging.getLogger(__name__)
 class EnsTransformer(BaseTransformer):
     def __init__(
             self,
-            in_channels: int = 64,
-            channels: int = 64,
+            n_channels: int = 64,
+            n_heads: int = 64,
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False
     ):
         super().__init__(
-            in_channels=in_channels,
-            channels=channels,
+            n_channels=n_channels,
+            n_heads=n_heads,
             activation=activation,
             value_layer=value_layer,
             key_activation=key_activation,
             same_key_query=same_key_query,
         )
-        self.reg_value = torch.nn.Parameter(torch.ones(channels))
+        self.reg_value = torch.nn.Parameter(torch.ones(n_heads))
 
     def _solve_lin(
             self,
