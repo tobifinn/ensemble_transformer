@@ -99,17 +99,8 @@ def predict_dataset(args: argparse.Namespace):
             prediction.append(ens_net(ifs_batch).cpu())
     prediction = torch.cat(prediction, dim=0)
 
-    try:
-        norm_mean = data_module.ds_test.target_transform.transforms[1].mean
-        norm_std = data_module.ds_test.target_transform.transforms[1].std
-    except AttributeError:
-        norm_mean = 0.
-        norm_std = 1.
-
     if isinstance(ens_net, PPNNet):
         output_mean, output_std = ens_net._estimate_mean_std(prediction)
-        output_mean = output_mean * norm_std + norm_mean
-        output_std = output_std * norm_std
         output_dataset = xr.Dataset(
             {
                 'mean': data_module.ds_test.era5.copy(data=output_mean.numpy()),
@@ -117,7 +108,6 @@ def predict_dataset(args: argparse.Namespace):
             }
         )
     else:
-        prediction = prediction * norm_std + norm_mean
         template_ds = data_module.ds_test.era5.expand_dims(
             'ensemble', axis=1
         )
