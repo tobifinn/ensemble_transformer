@@ -77,8 +77,8 @@ def predict_dataset(args: argparse.Namespace):
 
 
     try:
-        norm_mean = data_module.ds_test.target_transform[1].mean
-        norm_std = data_module.ds_test.target_transform[1].std
+        norm_mean = data_module.ds_test.target_transform.transforms[1].mean
+        norm_std = data_module.ds_test.target_transform.transforms[1].std
     except AttributeError:
         norm_mean = 0.
         norm_std = 1.
