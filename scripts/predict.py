@@ -96,8 +96,7 @@ def predict_dataset(args: argparse.Namespace):
     for ifs_batch, _ in tqdm(iter(test_dataloader), total=len(test_dataloader)):
         ifs_batch = ifs_batch.to(device)
         with torch.no_grad():
-            curr_prediction, _ = ens_net(ifs_batch)
-            prediction.append(curr_prediction.cpu())
+            prediction.append(ens_net(ifs_batch).cpu())
     prediction = torch.cat(prediction, dim=0)
 
     try:

@@ -117,12 +117,11 @@ class BaseNet(pl.LightningModule):
             }
         return optimizer
 
-    def forward(self, input_tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, input_tensor) -> torch.Tensor:
         embedded_tensor = self.embedding(input_tensor)
         transformed_tensor = self.transformers(embedded_tensor)
         output_tensor = self.output_layer(transformed_tensor).squeeze(dim=-3)
-        embedded_tensor = embedded_tensor.view(*embedded_tensor.shape[:2], -1)
-        return output_tensor, embedded_tensor
+        return output_tensor
 
     def training_step(
             self,
@@ -130,7 +129,7 @@ class BaseNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble, _ = self(in_tensor)
+        output_ensemble = self(in_tensor)
         output_mean, output_std = self._estimate_mean_std(output_ensemble)
         prediction = (output_mean, output_std)
         loss = self.loss_function(prediction, target_tensor).mean()
@@ -158,7 +157,7 @@ class BaseNet(pl.LightningModule):
             batch_idx: int
     ) -> torch.Tensor:
         in_tensor, target_tensor = batch
-        output_ensemble, _ = self(in_tensor)
+        output_ensemble = self(in_tensor)
         output_mean, output_std = self._estimate_mean_std(output_ensemble)
         prediction = (output_mean, output_std)
         loss = self.loss_function(prediction, target_tensor).mean()

@@ -63,9 +63,7 @@ class PPNNet(BaseNet):
         output_stddev = torch.exp(0.5 * output_ensemble[:, 1])
         return output_mean, output_stddev
 
-    def forward(
-            self, input_tensor: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
         embedded_tensor = self.embedding(input_tensor)
         mean_embedding = embedded_tensor.mean(dim=1)
         in_mean = input_tensor[..., [0], :, :].mean(dim=1)
@@ -74,5 +72,4 @@ class PPNNet(BaseNet):
         transformed_tensor = self.transformers(in_embedded)
         output_tensor = self.output_layer(transformed_tensor)
         output_tensor = output_tensor.view(-1, 2, 32, 64)
-        embedded_tensor = embedded_tensor.view(*embedded_tensor.shape[:2], -1)
-        return output_tensor, embedded_tensor
+        return output_tensor
