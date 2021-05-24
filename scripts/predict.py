@@ -23,6 +23,8 @@ import torch
 import numpy as np
 import xarray as xr
 
+import pytorch_lightning as pl
+
 from tqdm.autonotebook import tqdm
 
 # Internal modules
@@ -64,6 +66,9 @@ def predict_dataset(args: argparse.Namespace):
     model_path = os.path.join(args.model_path, args.exp_name)
     with initialize(config_path=os.path.join(model_path, 'hydra')):
         cfg = compose('config.yaml')
+
+    pl.seed_everything(42)
+
     ens_net = instantiate(
         cfg.model,
         in_channels=len(cfg.data.include_vars),
@@ -80,6 +85,10 @@ def predict_dataset(args: argparse.Namespace):
     )
     data_module.setup()
 
+    trainer: pl.Trainer = instantiate(
+        cfg.trainer,
+        logger=logger
+    )
 
     try:
         norm_mean = data_module.ds_test.target_transform.transforms[1].mean
@@ -88,47 +97,41 @@ def predict_dataset(args: argparse.Namespace):
         norm_mean = 0.
         norm_std = 1.
 
-    parametric = False
-    if isinstance(ens_net, PPNNet):
-        parametric = True
+    prediction = trainer.predict(
+        model=ens_net, dataloaders=data_module.test_dataloader()
+    )[0]
+    prediction = torch.from_numpy(prediction)
 
-    prediction = []
-    data_iter = iter(data_module.test_dataloader())
-    for ifs_data, _ in tqdm(data_iter):
-        with torch.no_grad():
-            net_output, _ = ens_net(ifs_data)
-            if parametric:
-                output_mean, output_std = ens_net._estimate_mean_std(net_output)
-                output_mean = output_mean * norm_std + norm_mean
-                output_std = output_std * norm_std
-                net_output = torch.stack((output_mean, output_std), dim=1)
-            else:
-                net_output = net_output * norm_std + norm_mean
-            prediction.append(net_output.detach().cpu().numpy())
-    prediction = np.concatenate(prediction, axis=0)
-    if parametric:
+    if isinstance(ens_net, PPNNet):
+        output_mean, output_std = ens_net._estimate_mean_std(prediction)
+        output_mean = output_mean * norm_std + norm_mean
+        output_std = output_std * norm_std
         output_dataset = xr.Dataset(
             {
-                'mean': data_module.ds_test.era.copy(data=prediction[:, 0]),
-                'stddev': data_module.ds_test.era.copy(data=prediction[:, 1])
+                'mean': data_module.ds_test.era.copy(data=output_mean.numpy()),
+                'stddev': data_module.ds_test.era.copy(data=output_std.numpy())
             }
         )
-
     else:
+        prediction = prediction * norm_std + norm_mean
         template_ds = data_module.ds_test.era.expand_dims(
             'ensemble', axis=1
         )
         output_dataset = xr.Dataset(
             {
                 'mean': data_module.ds_test.era.copy(
-                    data=prediction.mean(axis=1)
+                    data=prediction.numpy().mean(axis=1)
                 ),
                 'stddev': data_module.ds_test.era.copy(
-                    data=prediction.std(axis=1, ddof=1)
+                    data=prediction.numpy().std(axis=1, ddof=1)
                 ),
-                'particles': template_ds.copy(data=prediction)
+                'particles': template_ds.copy(data=prediction.numpy())
             }
         )
+        save_path = os.path.join(args.store_path,
+                                 '{0:s}.nc'.format(args.exp_name))
+        output_dataset.to_netcdf(save_path)
+
     save_path = os.path.join(args.store_path, '{0:s}.nc'.format(args.exp_name))
     output_dataset.to_netcdf(save_path)
 
