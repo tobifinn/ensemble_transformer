@@ -69,7 +69,7 @@ class IFSERADataModule(pl.LightningDataModule):
         )
         self.ds_test = IFSERADataset(
             ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_test'),
-            era_path=os.path.join(self.data_dir, 'ifs', 'ds_test'),
+            era_path=os.path.join(self.data_dir, 'era5', 'ds_test'),
             include_vars=self.include_vars,
             input_transform=input_transform,
             target_transform=target_transform,
@@ -78,7 +78,7 @@ class IFSERADataModule(pl.LightningDataModule):
         self.lats = self.ds_test.ifs['latitude'].values
         train_full = IFSERADataset(
             ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
-            era_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
+            era_path=os.path.join(self.data_dir, 'era5', 'ds_train'),
             include_vars=self.include_vars,
             input_transform=input_transform,
             target_transform=target_transform,
@@ -91,7 +91,7 @@ class IFSERADataModule(pl.LightningDataModule):
         )
         val_full = IFSERADataset(
             ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
-            era_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
+            era_path=os.path.join(self.data_dir, 'era5', 'ds_train'),
             include_vars=self.include_vars,
             input_transform=input_transform,
             target_transform=target_transform,
