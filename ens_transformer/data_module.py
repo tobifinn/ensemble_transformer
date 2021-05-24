@@ -66,9 +66,9 @@ class IFSERADataModule(pl.LightningDataModule):
     @property
     def ds_predict(self) -> torch.utils.data.Dataset:
         class SliceDataset(torch.utils.data.Dataset):
-            def __init__(self):
+            def __init__(cls):
                 super().__init__()
-                self.ds = self.ds_test
+                cls.ds = self.ds_test
 
             def __len__(self):
                 return len(self.ds)
