@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /model: direct
+exp_name: direct_1_20
+model:
+  n_transformers: 1
+data:
+  data_module:
+    subsample_size: 20
