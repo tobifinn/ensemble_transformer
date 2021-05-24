@@ -5,6 +5,7 @@ defaults:
   - trainer: default
   - training: default
   - callbacks:
+      - early_stopping
       - learning_rate_monitor
       - model_checkpoint
       - save_before_start
