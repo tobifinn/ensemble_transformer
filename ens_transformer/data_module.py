@@ -19,7 +19,7 @@ import os
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader, random_split
-from torchvision.transforms import Compose
+from torchvision.transforms import Compose, Lambda
 
 # Internal modules
 from .dataset_ifs_era import IFSERADataset
@@ -62,6 +62,20 @@ class IFSERADataModule(pl.LightningDataModule):
         else:
             input_transform = target_transform = to_tensor
         return input_transform, target_transform
+
+    @property
+    def ds_predict(self) -> torch.utils.data.Dataset:
+        class SliceDataset(torch.utils.data.Dataset):
+            def __init__(self):
+                super().__init__()
+                self.ds = self.ds_test
+
+            def __len__(self):
+                return len(self.ds)
+
+            def __getitem__(self, idx):
+                return self.ds[idx][0]
+        return SliceDataset()
 
     def setup(self, stage: Optional[str] = None) -> None:
         input_transform, target_transform = self._init_transforms(
@@ -119,6 +133,14 @@ class IFSERADataModule(pl.LightningDataModule):
     def test_dataloader(self) -> DataLoader:
         return DataLoader(
             dataset=self.ds_test,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+            batch_size=self.batch_size
+        )
+
+    def predict_dataloader(self) -> DataLoader:
+        return DataLoader(
+            dataset=self.ds_predict,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
             batch_size=self.batch_size

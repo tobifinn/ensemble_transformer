@@ -97,7 +97,7 @@ def predict_dataset(args: argparse.Namespace):
         norm_std = 1.
 
     prediction = trainer.predict(
-        model=ens_net, dataloaders=data_module.test_dataloader()
+        model=ens_net, dataloaders=data_module.predict_dataloader()
     )[0]
     prediction = torch.from_numpy(prediction)
 
