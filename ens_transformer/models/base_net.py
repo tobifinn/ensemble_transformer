@@ -64,11 +64,11 @@ class BaseNet(pl.LightningModule):
         self.metrics = torch.nn.ModuleDict({
             'crps': WeightedScore(
                 lambda prediction, target: crps_loss(
-                    prediction[0], prediction[1], target[:, 2]
+                    prediction[0], prediction[1], target
                 ),
             ),
             'mse': WeightedScore(
-                lambda prediction, target: (prediction[0]-target[:, 2]).pow(2),
+                lambda prediction, target: (prediction[0]-target).pow(2),
             ),
             'var': WeightedScore(
                 lambda prediction, target: prediction[1].pow(2),
