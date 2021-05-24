@@ -77,6 +77,7 @@ def predict_dataset(args: argparse.Namespace):
         in_channels=len(cfg.data.include_vars),
         learning_rate=cfg.learning_rate
     )
+    ens_net = ens_net.to(device)
     ens_net = ens_net.load_from_checkpoint(
         os.path.join(model_path, 'last.ckpt'),
         map_location=device,
