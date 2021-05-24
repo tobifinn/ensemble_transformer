@@ -61,6 +61,7 @@ class PPNNet(BaseNet):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         output_mean = output_ensemble[:, 0]
         output_stddev = torch.exp(0.5 * output_ensemble[:, 1])
+        output_stddev = output_stddev.clamp(min=1E-6, max=1E6)
         return output_mean, output_stddev
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
