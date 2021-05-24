@@ -33,7 +33,6 @@ main_logger = logging.getLogger(__name__)
 
 @hydra.main(config_path='../configs', config_name='config')
 def main_train(cfg: DictConfig) -> None:
-    os.chdir(get_original_cwd())
     pl.seed_everything(cfg.seed, workers=True)
 
     data_module: pl.LightningDataModule = instantiate(cfg.data.data_module)
@@ -71,10 +70,7 @@ def main_train(cfg: DictConfig) -> None:
         )
         fig: matplotlib.figure.Figure = lr_finder.plot(suggest=True)
 
-        lr_path = os.path.join(
-            HydraConfig.get().run.dir, HydraConfig.get().output_subdir,
-            'learning_rate.png'
-        )
+        lr_path = os.path.join(os.getcwd(), 'learning_rate.png')
         fig.savefig(lr_path)
         new_lr = lr_finder.suggestion()
         network.learning_rate = network.hparams['learning_rate'] = new_lr
