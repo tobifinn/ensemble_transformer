@@ -6,11 +6,10 @@ defaults:
 _recursive_: False
 _target_: ens_transformer.models.PPNNet
 n_transformers: 1
-hidden_channels: 64
 output_channels: 2
 loss_str: crps
 learning_rate: ${learning_rate}
 
 transformer:
   kernel_size: 5
-  activation: torch.nn.SELU
+  activation: torch.nn.ReLU

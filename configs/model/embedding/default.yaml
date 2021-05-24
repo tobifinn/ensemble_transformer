@@ -4,4 +4,4 @@ n_channels:
   - 64
   - 64
 kernel_size: 5
-activation: torch.nn.SELU
+activation: torch.nn.ReLU
