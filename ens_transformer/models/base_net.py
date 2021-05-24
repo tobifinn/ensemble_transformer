@@ -39,7 +39,6 @@ class BaseNet(pl.LightningModule):
             transformer: DictConfig,
             embedding: DictConfig,
             in_channels: int = 3,
-            hidden_channels: int = 64,
             output_channels: int = 1,
             n_transformers: int = 1,
             learning_rate: float = 1E-3,
@@ -54,11 +53,10 @@ class BaseNet(pl.LightningModule):
         self.transformers = self._init_transformers(
             transformer,
             embedded_channels=embedding.n_channels[-1],
-            hidden_channels=hidden_channels,
             n_transformers=n_transformers
         )
         self.output_layer = EnsConv2d(
-            in_channels=hidden_channels,
+            in_channels=embedding.n_channels[-1],
             out_channels=output_channels,
             kernel_size=1
         )
@@ -90,7 +88,6 @@ class BaseNet(pl.LightningModule):
     def _init_transformers(
             cfg: DictConfig,
             embedded_channels: int = 64,
-            hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
         pass

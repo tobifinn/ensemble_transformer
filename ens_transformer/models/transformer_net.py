@@ -30,21 +30,18 @@ class TransformerNet(BaseNet):
     def _init_transformers(
             cfg: DictConfig,
             embedded_channels: int = 64,
-            hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
         transformer_list = []
-        in_channels = embedded_channels
         for idx in range(n_transformers):
             curr_transformer = get_class(cfg._target_)(
-                in_channels=in_channels,
-                channels=hidden_channels,
+                n_channels=embedded_channels,
+                n_heads=cfg.n_heads,
                 activation=cfg.activation,
                 key_activation=cfg.key_activation,
                 same_key_query=cfg.same_key_query,
                 value_layer=cfg.value_layer
             )
-            in_channels = hidden_channels
             transformer_list.append(curr_transformer)
         transformers = torch.nn.Sequential(*transformer_list)
         return transformers

@@ -32,7 +32,6 @@ class PPNNet(BaseNet):
     def _init_transformers(
             cfg: DictConfig,
             embedded_channels: int = 64,
-            hidden_channels: int = 64,
             n_transformers: int = 1
     ) -> torch.nn.Sequential:
         transformer_list = []
@@ -45,13 +44,13 @@ class PPNNet(BaseNet):
                 )
             curr_transformer.append(
                 torch.nn.Conv2d(
-                    in_channels, hidden_channels,
+                    in_channels, embedded_channels,
                     kernel_size=cfg.kernel_size, padding=0
                 ),
             )
             curr_transformer.append(get_class(cfg.activation)(inplace=True))
             submodule = torch.nn.Sequential(*curr_transformer)
-            in_channels = hidden_channels
+            in_channels = embedded_channels
             transformer_list.append(submodule)
         transformers = torch.nn.Sequential(*transformer_list)
         return transformers
