@@ -54,6 +54,10 @@ parser.add_argument(
     help='The path were the prediction within a netCDF file should be stored, '
          'default: ../data/processed/prediction'
 )
+parser.add_argument(
+    '--batch_size', type=int, default=64,
+    help='The batch size for the prediction'
+)
 
 
 def predict_dataset(args: argparse.Namespace):
@@ -72,6 +76,7 @@ def predict_dataset(args: argparse.Namespace):
     data_module: IFSERADataModule = instantiate(
         cfg['data']['data_module'],
         data_dir=args.data_dir,
+        batch_size=args.batch_size
     )
     data_module.setup()
 
