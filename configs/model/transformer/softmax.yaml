@@ -1,5 +1,5 @@
 _target_: ens_transformer.transformers.SoftmaxTransformer
-activation: torch.nn.SELU
+activation: torch.nn.ReLU
 key_activation: Null
 same_key_query: false
 value_layer: true
