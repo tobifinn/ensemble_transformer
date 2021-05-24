@@ -47,7 +47,9 @@ class IFSERADataset(Dataset):
         self.ifs = self.get_ifs()
 
     def get_era5(self) -> xr.DataArray:
-        return xr.open_zarr(self.era_path)['t2m']
+        ds_era = xr.open_zarr(self.era_path)['t2m']
+        ds_era = ds_era - 273.15
+        return ds_era
 
     def get_ifs(self) -> xr.DataArray:
         ds_ifs = xr.open_zarr(self.ifs_path)
