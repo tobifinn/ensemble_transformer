@@ -33,7 +33,7 @@ class PPNNet(BaseNet):
             cfg: DictConfig,
             embedded_channels: int = 64,
             n_transformers: int = 1
-    ) -> torch.nn.Sequential:
+    ) -> Tuple[torch.nn.Sequential, int]:
         transformer_list = []
         in_channels = embedded_channels + 2
         for idx in range(n_transformers):
@@ -53,7 +53,7 @@ class PPNNet(BaseNet):
             in_channels = embedded_channels
             transformer_list.append(submodule)
         transformers = torch.nn.Sequential(*transformer_list)
-        return transformers
+        return transformers, in_channels
 
     @staticmethod
     def _estimate_mean_std(

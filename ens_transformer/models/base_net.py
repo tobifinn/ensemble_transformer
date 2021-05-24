@@ -50,13 +50,13 @@ class BaseNet(pl.LightningModule):
             1, 50, in_channels, 32, 64
         )
         self.embedding = instantiate(embedding, in_channels=in_channels)
-        self.transformers = self._init_transformers(
+        self.transformers, out_channels = self._init_transformers(
             transformer,
             embedded_channels=embedding.n_channels[-1],
             n_transformers=n_transformers
         )
         self.output_layer = EnsConv2d(
-            in_channels=embedding.n_channels[-1],
+            in_channels=out_channels,
             out_channels=output_channels,
             kernel_size=1
         )
@@ -89,7 +89,7 @@ class BaseNet(pl.LightningModule):
             cfg: DictConfig,
             embedded_channels: int = 64,
             n_transformers: int = 1
-    ) -> torch.nn.Sequential:
+    ) -> Tuple[torch.nn.Sequential, int]:
         pass
 
     @staticmethod

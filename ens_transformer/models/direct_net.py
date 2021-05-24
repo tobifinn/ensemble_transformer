@@ -12,6 +12,7 @@
 
 # System modules
 import logging
+from typing import Tuple
 
 # External modules
 import torch
@@ -31,7 +32,7 @@ class DirectNet(BaseNet):
             cfg: DictConfig,
             embedded_channels: int = 64,
             n_transformers: int = 1
-    ) -> torch.nn.Sequential:
+    ) -> Tuple[torch.nn.Sequential, int]:
         transformer_list = []
         for idx in range(n_transformers):
             curr_transformer = []
@@ -47,4 +48,4 @@ class DirectNet(BaseNet):
             submodule = torch.nn.Sequential(*curr_transformer)
             transformer_list.append(submodule)
         transformers = torch.nn.Sequential(*transformer_list)
-        return transformers
+        return transformers, embedded_channels
