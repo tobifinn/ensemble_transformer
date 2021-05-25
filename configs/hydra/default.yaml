@@ -2,7 +2,7 @@ run:
   dir: ../data/models/${exp_name}
 
 sweep:
-  dir: ../data/models/${sweep_dir}
+  dir: ../data/models
   subdir: ${exp_name}
 
 output_subdir: hydra
