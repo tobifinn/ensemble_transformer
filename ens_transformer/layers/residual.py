@@ -34,6 +34,7 @@ class ResidualLayer(torch.nn.Module):
             activation: str = 'torch.nn.ReLU',
             n_residuals: int = 1
     ):
+        super().__init__()
         if kernel_size > 1:
             self.padding = EarthPadding(pad_size=(kernel_size - 1) // 2)
         else:
@@ -45,7 +46,8 @@ class ResidualLayer(torch.nn.Module):
             in_channels=channels, out_channels=channels,
             kernel_size=kernel_size, padding=0, bias=False
         )
-        self.conv_2.conv2d.base_layer.weight *= (n_residuals ** -0.5)
+        self.conv_1.conv2d.base_layer.weight.data = \
+            self.conv_1.conv2d.base_layer.weight.data * (n_residuals ** -0.5)
         self.conv_2 = EnsConv2d(
             in_channels=channels, out_channels=channels,
             kernel_size=kernel_size, padding=0, bias=False
