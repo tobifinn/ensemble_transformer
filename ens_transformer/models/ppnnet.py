@@ -16,15 +16,40 @@ from typing import Tuple
 
 # External modules
 import torch
+from omegaconf import DictConfig
+from hydra.utils import get_class
 
 # Internal modules
-from .direct_net import DirectNet
+from .base_net import BaseNet
+from ..layers import ResidualLayer
 
 
 logger = logging.getLogger(__name__)
 
 
-class PPNNet(DirectNet):
+class PPNNet(BaseNet):
+    @staticmethod
+    def _init_transformers(
+            cfg: DictConfig,
+            embedded_channels: int = 64,
+            n_transformers: int = 1
+    ) -> Tuple[torch.nn.Sequential, int]:
+        transformer_list = []
+        in_channels = embedded_channels + 2
+        for idx in range(n_transformers):
+            residual_module: ResidualLayer = get_class(cfg._target_)(
+                in_channels=in_channels,
+                out_channels=embedded_channels,
+                kernel_size=cfg.kernel_size,
+                branch_activation=cfg.branch_activation,
+                activation=cfg.activation,
+                n_residuals=n_transformers
+            )
+            in_channels = embedded_channels
+            transformer_list.append(residual_module)
+        transformers = torch.nn.Sequential(*transformer_list)
+        return transformers, in_channels
+
     @staticmethod
     def _estimate_mean_std(
             output_ensemble: torch.Tensor
