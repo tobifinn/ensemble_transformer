@@ -17,6 +17,7 @@ from typing import Tuple
 # External modules
 import torch
 from omegaconf import DictConfig
+from hydra.utils import get_class
 
 # Internal modules
 from .base_net import BaseNet
@@ -34,7 +35,7 @@ class DirectNet(BaseNet):
     ) -> Tuple[torch.nn.Sequential, int]:
         transformer_list = []
         for idx in range(n_transformers):
-            residual_module = ResidualLayer(
+            residual_module: ResidualLayer = get_class(cfg._target_)(
                 channels=embedded_channels,
                 kernel_size=cfg.kernel_size,
                 branch_activation=cfg.branch_activation,
