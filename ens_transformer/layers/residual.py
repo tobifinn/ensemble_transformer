@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 class ResidualLayer(torch.nn.Module):
     def __init__(
             self,
-            channels: int = 64,
+            in_channels: int = 64,
+            out_channels: int = 64,
             kernel_size: int = 5,
             branch_activation: str = 'torch.nn.ReLU',
             activation: str = 'torch.nn.ReLU',
@@ -43,16 +44,23 @@ class ResidualLayer(torch.nn.Module):
         self.activation = get_class(activation)(inplace=True)
 
         self.conv_1 = EnsConv2d(
-            in_channels=channels, out_channels=channels,
+            in_channels=in_channels, out_channels=out_channels,
             kernel_size=kernel_size, padding=0, bias=False
         )
         self.conv_1.conv2d.base_layer.weight.data = \
             self.conv_1.conv2d.base_layer.weight.data * (n_residuals ** -0.5)
         self.conv_2 = EnsConv2d(
-            in_channels=channels, out_channels=channels,
+            in_channels=out_channels, out_channels=out_channels,
             kernel_size=kernel_size, padding=0, bias=False
         )
         torch.nn.init.zeros_(self.conv_2.conv2d.base_layer.weight)
+        if in_channels != out_channels:
+            self.proj_conv = EnsConv2d(
+                in_channels=in_channels, out_channels=out_channels,
+                kernel_size=kernel_size, padding=0, bias=False
+            )
+        else:
+            self.proj_conv = torch.nn.Sequential()
         self.bias_before_conv_1 = torch.nn.Parameter(torch.zeros(1))
         self.bias_before_branch_activation = torch.nn.Parameter(torch.zeros(1))
         self.bias_before_conv_2 = torch.nn.Parameter(torch.zeros(1))
@@ -70,6 +78,8 @@ class ResidualLayer(torch.nn.Module):
         branch_tensor = self.conv_2(branch_tensor)
         branch_tensor = self.multiplier * branch_tensor
         branch_tensor = self.bias_before_activation + branch_tensor
-        out_tensor = in_tensor + branch_tensor
+        projected_tensor = self.padding(in_tensor)
+        projected_tensor = self.proj_conv(projected_tensor)
+        out_tensor = projected_tensor + branch_tensor
         out_tensor = self.activation(out_tensor)
         return out_tensor
