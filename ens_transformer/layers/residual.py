@@ -55,9 +55,12 @@ class ResidualLayer(torch.nn.Module):
         )
         torch.nn.init.zeros_(self.conv_2.conv2d.base_layer.weight)
         if in_channels != out_channels:
-            self.proj_conv = EnsConv2d(
-                in_channels=in_channels, out_channels=out_channels,
-                kernel_size=kernel_size, padding=0, bias=False
+            self.proj_conv = torch.nn.Sequential(
+                self.padding,
+                EnsConv2d(
+                    in_channels=in_channels, out_channels=out_channels,
+                    kernel_size=kernel_size, padding=0, bias=False
+                )
             )
         else:
             self.proj_conv = torch.nn.Sequential()
@@ -78,8 +81,7 @@ class ResidualLayer(torch.nn.Module):
         branch_tensor = self.conv_2(branch_tensor)
         branch_tensor = self.multiplier * branch_tensor
         branch_tensor = self.bias_before_activation + branch_tensor
-        projected_tensor = self.padding(in_tensor)
-        projected_tensor = self.proj_conv(projected_tensor)
+        projected_tensor = self.proj_conv(in_tensor)
         out_tensor = projected_tensor + branch_tensor
         out_tensor = self.activation(out_tensor)
         return out_tensor
