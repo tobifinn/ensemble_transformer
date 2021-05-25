@@ -1,6 +1,6 @@
 run:
-  dir: ../data/models/${exp_name}
+  dir: ../data/models/${hydra.job.override_dirname}
 sweep:
   dir: ../data/models
-  subdir: ${exp_name}
+  subdir: ${hydra.job.override_dirname}
 output_subdir: hydra
