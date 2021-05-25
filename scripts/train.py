@@ -66,7 +66,9 @@ def main_train(cfg: DictConfig) -> None:
     training_logger = None
     if cfg.logger is not None:
         for _, logger_cfg in cfg.logger.items():
-            training_logger: LightningLoggerBase = instantiate(logger_cfg)
+            training_logger: LightningLoggerBase = instantiate(
+                logger_cfg, name=os.path.dirname(hydra_dir)
+            )
 
     trainer: pl.Trainer = instantiate(
         cfg.trainer,
