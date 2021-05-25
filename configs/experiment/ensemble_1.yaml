@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+  - override /model: transformer
+  - override /model/transformer: ensemble
+exp_name: ensemble_1
+model:
+  n_transformers: 1
+data:
+  data_module:
+    subsample_size: 20
