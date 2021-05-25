@@ -96,7 +96,8 @@ class BaseTransformer(torch.nn.Module):
             conv_layer = EnsConv2d(
                 in_channels=n_channels,
                 out_channels=n_heads,
-                kernel_size=1
+                kernel_size=1,
+                bias=False
             )
             layers.append(conv_layer)
         return torch.nn.Sequential(*layers)
@@ -110,7 +111,8 @@ class BaseTransformer(torch.nn.Module):
         conv_layer = EnsConv2d(
             in_channels=n_channels,
             out_channels=n_heads,
-            kernel_size=1
+            kernel_size=1,
+            bias=False
         )
         layers = [conv_layer]
         if key_activation:
