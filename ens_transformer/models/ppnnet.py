@@ -16,45 +16,15 @@ from typing import Tuple
 
 # External modules
 import torch
-from omegaconf import DictConfig
-from hydra.utils import get_class
 
 # Internal modules
-from .base_net import BaseNet
-from ..layers import EarthPadding
+from .direct_net import DirectNet
 
 
 logger = logging.getLogger(__name__)
 
 
-class PPNNet(BaseNet):
-    @staticmethod
-    def _init_transformers(
-            cfg: DictConfig,
-            embedded_channels: int = 64,
-            n_transformers: int = 1
-    ) -> Tuple[torch.nn.Sequential, int]:
-        transformer_list = []
-        in_channels = embedded_channels + 2
-        for idx in range(n_transformers):
-            curr_transformer = []
-            if cfg.kernel_size > 1:
-                curr_transformer.append(
-                    EarthPadding(pad_size=(cfg.kernel_size-1) // 2)
-                )
-            curr_transformer.append(
-                torch.nn.Conv2d(
-                    in_channels, embedded_channels,
-                    kernel_size=cfg.kernel_size, padding=0
-                ),
-            )
-            curr_transformer.append(get_class(cfg.activation)(inplace=True))
-            submodule = torch.nn.Sequential(*curr_transformer)
-            in_channels = embedded_channels
-            transformer_list.append(submodule)
-        transformers = torch.nn.Sequential(*transformer_list)
-        return transformers, in_channels
-
+class PPNNet(DirectNet):
     @staticmethod
     def _estimate_mean_std(
             output_ensemble: torch.Tensor
