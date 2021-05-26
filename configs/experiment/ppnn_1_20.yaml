@@ -1,9 +1,0 @@
-# @package _global_
-defaults:
-  - override /model: ppnn
-exp_name: ppnn_1_20
-model:
-  n_transformers: 1
-data:
-  data_module:
-    subsample_size: 20

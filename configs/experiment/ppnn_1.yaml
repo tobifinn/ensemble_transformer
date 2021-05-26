@@ -1,6 +1,0 @@
-# @package _global_
-defaults:
-  - override /model: ppnn
-exp_name: ppnn_1
-model:
-  n_transformers: 1

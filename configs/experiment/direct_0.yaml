@@ -1,6 +1,0 @@
-# @package _global_
-defaults:
-  - override /model: direct
-exp_name: direct_0
-model:
-  n_transformers: 0
