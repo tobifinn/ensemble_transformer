@@ -150,7 +150,7 @@ class BaseTransformer(torch.nn.Module):
         transformed_perts = torch.einsum(
             'bcij, bichw->bjchw', weights_tensor, value_perts
         )
-        transformed_tensor = value_mean + transformed_perts
+        transformed_tensor = value_tensor + transformed_perts
         return transformed_tensor
 
     def _apply_layers(
@@ -170,8 +170,6 @@ class BaseTransformer(torch.nn.Module):
             in_tensor=in_tensor
         )
         weights = self._get_weights(key=key, query=query)
-        id_matrix = torch.eye(weights.shape[-1])[None, :, :]
-        weights = weights + id_matrix.to(weights)
 
         transformed = self._apply_weights(value, weights)
         out_tensor = in_tensor + self.out_layer(transformed)
