@@ -164,8 +164,8 @@ class BaseTransformer(torch.nn.Module):
             in_tensor=in_tensor
         )
         weights = self._get_weights(key=key, query=query)
-        id_matrix = torch.eye(weights.shape[-1])[None, :, :]
-        weights = weights + id_matrix.to(weights)
+        #id_matrix = torch.eye(weights.shape[-1])[None, :, :]
+        #weights = weights + id_matrix.to(weights)
 
         transformed = self._apply_weights(value, weights)
         out_tensor = in_tensor + self.out_layer(transformed)
