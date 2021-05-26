@@ -1,6 +1,6 @@
 _target_: ens_transformer.transformers.EnsTransformer
 activation: torch.nn.ReLU
-key_activation: torch.nn.SELU
+key_activation: ens_transformer.layers.ELUKernel
 same_key_query: false
 value_layer: true
 n_heads: 64
