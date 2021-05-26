@@ -79,6 +79,8 @@ class BaseTransformer(torch.nn.Module):
                 n_heads=n_heads,
                 key_activation=key_activation,
             )
+            self.query_layer.conv2d.base_layer.weight.data = \
+                self.key_layer.conv2d.base_layer.weight.data
         self.out_layer = EnsConv2d(
             in_channels=n_heads, out_channels=n_channels, kernel_size=1,
             padding=0
