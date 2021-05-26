@@ -114,6 +114,12 @@ class BaseTransformer(torch.nn.Module):
             kernel_size=1,
             bias=False
         )
+        if key_activation == 'torch.nn.SELU':
+            lecun_stddev = np.sqrt(1/n_channels)
+            torch.nn.init.normal_(
+                conv_layer.conv2d.base_layer.weight,
+                std=lecun_stddev
+            )
         layers = [conv_layer]
         if key_activation:
             layers.append(get_class(key_activation)(inplace=True))
