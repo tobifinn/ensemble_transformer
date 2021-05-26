@@ -2,9 +2,4 @@
 defaults:
   - override /model: transformer
   - override /model/transformer: ensemble
-exp_name: ensemble_1
-model:
-  n_transformers: 1
-data:
-  data_module:
-    subsample_size: 20
+exp_name: ensemble_${model.n_transformers}_${data.data_module.subsample_size}
