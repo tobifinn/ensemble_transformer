@@ -79,8 +79,6 @@ class BaseTransformer(torch.nn.Module):
                 n_heads=n_heads,
                 key_activation=key_activation,
             )
-            self.query_layer[0].conv2d.base_layer.weight.data = \
-                self.key_layer[0].conv2d.base_layer.weight.data
         self.out_layer = EnsConv2d(
             in_channels=n_heads, out_channels=n_channels, kernel_size=1,
             padding=0
@@ -166,8 +164,8 @@ class BaseTransformer(torch.nn.Module):
             in_tensor=in_tensor
         )
         weights = self._get_weights(key=key, query=query)
-        #id_matrix = torch.eye(weights.shape[-1])[None, :, :]
-        #weights = weights + id_matrix.to(weights)
+        id_matrix = torch.eye(weights.shape[-1])[None, :, :]
+        weights = weights + id_matrix.to(weights)
 
         transformed = self._apply_weights(value, weights)
         out_tensor = in_tensor + self.out_layer(transformed)
