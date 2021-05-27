@@ -120,12 +120,9 @@ def predict_dataset(args: argparse.Namespace):
                 'members': template_ds.copy(data=prediction.numpy())
             }
         )
-        save_path = os.path.join(args.store_path,
-                                 '{0:s}.nc'.format(args.exp_name))
-        output_dataset.to_netcdf(save_path)
 
     save_path = os.path.join(args.store_path, '{0:s}.nc'.format(args.exp_name))
-    save_dir = os.path.dirname(save_path)
+    save_dir = os.path.dirname(os.path.realpath(save_path))
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     output_dataset.to_netcdf(save_path)
