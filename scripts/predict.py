@@ -125,6 +125,9 @@ def predict_dataset(args: argparse.Namespace):
         output_dataset.to_netcdf(save_path)
 
     save_path = os.path.join(args.store_path, '{0:s}.nc'.format(args.exp_name))
+    save_dir = os.path.dirname(save_path)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
     output_dataset.to_netcdf(save_path)
 
 
