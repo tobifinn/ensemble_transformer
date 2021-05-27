@@ -108,9 +108,7 @@ def predict_dataset(args: argparse.Namespace):
             }
         )
     else:
-        template_ds = data_module.ds_test.era5.expand_dims(
-            'ensemble', axis=1
-        )
+        template_ds = data_module.ds_test.ifs.sel(var_name='t2m')
         output_dataset = xr.Dataset(
             {
                 'mean': data_module.ds_test.era5.copy(
@@ -119,7 +117,7 @@ def predict_dataset(args: argparse.Namespace):
                 'stddev': data_module.ds_test.era5.copy(
                     data=prediction.numpy().std(axis=1, ddof=1)
                 ),
-                'particles': template_ds.copy(data=prediction.numpy())
+                'members': template_ds.copy(data=prediction.numpy())
             }
         )
         save_path = os.path.join(args.store_path,
