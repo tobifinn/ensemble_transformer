@@ -4,3 +4,4 @@ key_activation: Null
 same_key_query: false
 value_layer: true
 n_heads: 64
+layer_norm: true
