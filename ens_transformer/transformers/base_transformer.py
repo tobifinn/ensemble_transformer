@@ -55,12 +55,18 @@ class BaseTransformer(torch.nn.Module):
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False,
+            layer_norm: bool = True,
     ):
         super().__init__()
         if activation is not None:
             self.activation = get_class(activation)(inplace=True)
         else:
             self.activation = None
+        if layer_norm is not None:
+            self.layer_norm = torch.nn.LayerNorm([n_channels, 32, 64])
+        else:
+            self.layer_norm = torch.nn.Sequential()
+
         self.value_layer = self._construct_value_layer(
             n_channels=n_channels,
             n_heads=n_heads,
@@ -166,8 +172,9 @@ class BaseTransformer(torch.nn.Module):
             self,
             in_tensor: torch.Tensor
     ) -> torch.Tensor:
+        pre_norm_tensor = self.layer_norm(in_tensor)
         value, key, query = self._apply_layers(
-            in_tensor=in_tensor
+            in_tensor=pre_norm_tensor
         )
         weights = self._get_weights(key=key, query=query)
 
