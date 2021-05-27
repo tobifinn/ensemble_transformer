@@ -16,7 +16,7 @@ from typing import Tuple
 
 # External modules
 import torch
-from hydra.utils import get_class
+from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 # Internal modules
@@ -35,14 +35,7 @@ class TransformerNet(BaseNet):
     ) -> Tuple[torch.nn.Sequential, int]:
         transformer_list = []
         for idx in range(n_transformers):
-            curr_transformer = get_class(cfg._target_)(
-                n_channels=embedded_channels,
-                n_heads=cfg.n_heads,
-                activation=cfg.activation,
-                key_activation=cfg.key_activation,
-                same_key_query=cfg.same_key_query,
-                value_layer=cfg.value_layer
-            )
+            curr_transformer = instantiate(cfg, n_channels=embedded_channels)
             transformer_list.append(curr_transformer)
         transformers = torch.nn.Sequential(*transformer_list)
         return transformers, embedded_channels
