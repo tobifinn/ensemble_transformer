@@ -55,7 +55,7 @@ class BaseTransformer(torch.nn.Module):
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
             same_key_query: bool = False,
-            layer_norm: bool = True,
+            layer_norm: bool = False,
     ):
         super().__init__()
         if activation is not None:
