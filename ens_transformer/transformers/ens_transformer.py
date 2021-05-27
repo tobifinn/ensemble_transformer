@@ -47,7 +47,8 @@ class EnsTransformer(BaseTransformer):
             activation: Union[None, str] = 'torch.nn.SELU',
             key_activation: Union[None, str] = 'torch.nn.SELU',
             value_layer: bool = True,
-            same_key_query: bool = False
+            same_key_query: bool = False,
+            layer_norm: bool = False
     ):
         super().__init__(
             n_channels=n_channels,
@@ -56,6 +57,7 @@ class EnsTransformer(BaseTransformer):
             value_layer=value_layer,
             key_activation=key_activation,
             same_key_query=same_key_query,
+            layer_norm=layer_norm
         )
         self.reg_value = torch.nn.Parameter(torch.ones(n_heads))
 
