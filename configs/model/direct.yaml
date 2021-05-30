@@ -2,10 +2,10 @@ defaults:
   - embedding: default
   - optimizer: adam
   - scheduler: plateau
-  - transformer: ensemble
+  - transformer: residual
 
 _recursive_: False
-_target_: ens_transformer.models.TransformerNet
+_target_: ens_transformer.models.DirectNet
 n_transformers: 1
 output_channels: 1
 loss_str: crps

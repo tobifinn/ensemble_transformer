@@ -25,12 +25,12 @@
 
 # System modules
 import logging
-from typing import Union, Tuple
-from math import sqrt
+from typing import Union
 
 # External modules
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 # Internal modules
 from .base_transformer import BaseTransformer
@@ -42,42 +42,35 @@ logger = logging.getLogger(__name__)
 class EnsTransformer(BaseTransformer):
     def __init__(
             self,
-            in_channels: int,
-            out_channels: int,
-            value_activation: Union[None, str] = None,
-            embedding_size: int = 256,
-            n_key_neurons: int = 1,
-            coarsening_factor: int = 1,
-            key_activation: Union[None, str] = None,
-            interpolation_mode: str = 'bilinear',
-            grid_dims: Tuple[int, int] = (32, 64),
-            same_key_query: bool = False
+            n_channels: int = 64,
+            n_heads: int = 64,
+            activation: Union[None, str] = 'torch.nn.SELU',
+            key_activation: Union[None, str] = 'torch.nn.SELU',
+            value_layer: bool = True,
+            same_key_query: bool = False,
+            layer_norm: bool = False
     ):
         super().__init__(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            value_activation=value_activation,
-            embedding_size=embedding_size,
-            n_key_neurons=n_key_neurons,
-            coarsening_factor=coarsening_factor,
+            n_channels=n_channels,
+            n_heads=n_heads,
+            activation=activation,
+            value_layer=value_layer,
             key_activation=key_activation,
-            interpolation_mode=interpolation_mode,
-            grid_dims=grid_dims,
-            same_key_query=same_key_query
+            same_key_query=same_key_query,
+            layer_norm=layer_norm
         )
-        self.reg_value = torch.nn.Parameter(torch.ones(1))
+        self.reg_value = torch.nn.Parameter(torch.ones(n_heads))
 
     def _solve_lin(
             self,
             hessian: torch.Tensor,
             moment_matrix: torch.Tensor
     ) -> torch.Tensor:
-        hessian_moved = hessian.moveaxis(1, -1).moveaxis(1, -1)
-        moment_moved = moment_matrix.moveaxis(1, -1).moveaxis(1, -1)
-        reg_lam = F.softplus(self.reg_value)
-        hessian_reg = hessian_moved + (reg_lam + 1E-8) * self.identity
-        weights, _ = torch.solve(moment_moved, hessian_reg)
-        weights = weights.moveaxis(-1, 1).moveaxis(-1, 1)
+        reg_lam = F.softplus(self.reg_value)[:, None, None]
+        id_matrix = torch.eye(hessian.shape[-1])[None, :, :]
+        reg_lam = reg_lam * id_matrix.to(hessian)
+        hessian_reg = hessian + reg_lam
+        weights, _ = torch.solve(moment_matrix, hessian_reg)
         return weights
 
     def _get_weights(
@@ -85,9 +78,8 @@ class EnsTransformer(BaseTransformer):
             key: torch.Tensor,
             query: torch.Tensor
     ) -> torch.Tensor:
-        key = key-key.mean(dim=1, keepdim=True)
-        query = query-query.mean(dim=1, keepdim=True)
-        hessian = self._dot_product(key, key) / sqrt(self.n_key_neurons)
-        moment_matrix = self._dot_product(key, query) / sqrt(self.n_key_neurons)
+        norm_factor = 1. / np.sqrt(key.shape[-2] * key.shape[-1])
+        hessian = self._dot_product(key, key) / norm_factor
+        moment_matrix = self._dot_product(key, query) / norm_factor
         weights = self._solve_lin(hessian, moment_matrix)
         return weights

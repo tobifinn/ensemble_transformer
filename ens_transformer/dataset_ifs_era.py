@@ -33,7 +33,8 @@ class IFSERADataset(Dataset):
             era_path: str,
             include_vars: Union[None, Iterable[str]] = None,
             input_transform: Union[None, Callable] = None,
-            target_transform: Union[None, Callable] = None
+            target_transform: Union[None, Callable] = None,
+            subsample_size: Union[None, int] = 20,
     ):
         super().__init__()
         self.ifs_path = ifs_path
@@ -41,11 +42,14 @@ class IFSERADataset(Dataset):
         self.include_vars = include_vars
         self.input_transform = input_transform
         self.target_transform = target_transform
+        self.subsample_size = subsample_size
         self.era5 = self.get_era5()
         self.ifs = self.get_ifs()
 
     def get_era5(self) -> xr.DataArray:
-        return xr.open_zarr(self.era_path)['t2m']
+        ds_era = xr.open_zarr(self.era_path)['t2m']
+        ds_era = ds_era - 273.15
+        return ds_era
 
     def get_ifs(self) -> xr.DataArray:
         ds_ifs = xr.open_zarr(self.ifs_path)
@@ -65,6 +69,11 @@ class IFSERADataset(Dataset):
     ) -> Tuple[Union[np.ndarray, torch.Tensor],
                Union[np.ndarray, torch.Tensor]]:
         ifs_tensor = self.ifs[idx].values
+        if self.subsample_size is not None:
+            ens_idx = np.random.choice(
+                ifs_tensor.shape[0], size=self.subsample_size, replace=False
+            )
+            ifs_tensor = ifs_tensor[ens_idx]
         if self.input_transform is not None:
             ifs_tensor = self.input_transform(ifs_tensor)
 

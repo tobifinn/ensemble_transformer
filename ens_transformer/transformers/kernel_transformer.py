@@ -30,5 +30,5 @@ class KernelTransformer(BaseTransformer):
             query: torch.Tensor
     ) -> torch.Tensor:
         weights = self._dot_product(key, query)
-        weights = weights / weights.sum(dim=1, keepdim=True)
+        weights = weights / weights.sum(dim=-2, keepdim=True)
         return weights

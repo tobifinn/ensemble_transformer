@@ -1,0 +1,4 @@
+_target_: ens_transformer.layers.ResidualLayer
+activation: torch.nn.ReLU
+branch_activation: torch.nn.ReLU
+kernel_size: 1

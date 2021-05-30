@@ -1,0 +1,5 @@
+# @package _global_
+defaults:
+  - override /model: transformer
+  - override /model/transformer: softmax
+exp_name: transformer_${model.n_transformers}_${data.data_module.subsample_size}

@@ -1,7 +1,0 @@
-_target_: ens_transformer.embedding.ConvEmbedding
-in_channels: 3
-n_conv_layers: 6
-n_init_features: 4
-embedding_size: 256
-activation: torch.nn.SELU
-dim_sizes: ${data.grid_dims}

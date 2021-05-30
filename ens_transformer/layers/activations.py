@@ -22,7 +22,7 @@ import torch
 logger = logging.getLogger(__name__)
 
 
-class SELUKernel(torch.nn.SELU):
+class ELUKernel(torch.nn.ELU):
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
         activated_tensor = super().forward(input_tensor)
         activated_tensor = activated_tensor+1
