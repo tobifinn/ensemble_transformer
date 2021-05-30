@@ -9,6 +9,7 @@ from typing import Any, Union
 
 # External modules
 import xarray as xr
+import numpy as np
 from tqdm import tqdm
 
 # Internal modules
