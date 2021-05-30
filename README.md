@@ -53,6 +53,8 @@ The folder structure is the following:
 |-- setup.py           # The setup.py to install the ens_transformer modules
 |-- used_env.yml       # The used conda environment with pinned versions
 ```
+In almost all scripts only relative directories are used to reference the 
+data and models.
 
 As a first step the ERA5 data has to be downloaded from [[4]](#4). All other 
 scripts to pre-process the data can be found in `scripts/data/`.
