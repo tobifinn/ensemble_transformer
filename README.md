@@ -1,5 +1,8 @@
-Self-Attentive Ensemble Transformer: Representing Ensemble Interactions in Neural Networks for Earth System Models
-====================================================================================================================
+Self-Attentive Ensemble Transformer
+===================================
+Representing Ensemble Interactions in Neural Networks for Earth System Models
+---
+
 If you are using these scripts and the repository, please cite:
 
 > XXXX, 2021. Self-Attentive Ensemble Transformer: Representing Ensemble 
@@ -8,14 +11,14 @@ If you are using these scripts and the repository, please cite:
 
 This project and repository is dedicated to enable processing with neural 
 networks of ensemble data for Earth system models.
-Based on ideas from ensemble data assimilation, specifically the ensemble 
-Kalman filter, and self-attention, this repostory includes modules for the 
+Based on ideas from self-attention and ensemble data assimilation, specifically
+the ensemble Kalman filter, this repostory includes modules for the 
 self-attentive ensemble transformer.
 The ensemble transformer is a novel type of neural network to process 
 ensemble data without a parametric assumption, as it is usually done in 
 post-processing or Model Output Statistics.
 With this repo, it is possible to compare the transformer with other models, 
-like the parametric approach from [Rasp & Lerch, 2018].
+like a parametric approach similar to [[Rasp & Lerch 2018]](#rasp).
 
 The scripts and module is written in PyTorch [[1]](#1), Pytorch lightning [
 [2]](#2) and 
@@ -84,6 +87,9 @@ GitHub issue.
 <a id="3">[3]</a> https://hydra.cc/
 
 <a id="4">[4]</a> https://cds.climate.copernicus.eu/
+
+<a id="rasp">[Rasp & Lerch 2018]</a> Rasp, Stephan, and Sebastian Lerch. " Neural Networks for Postprocessing Ensemble Weather Forecasts", Monthly Weather Review 146, 11 (2018): 3885-3900, https://doi.org/10.1175/MWR-D-18-0187.1
+
 
 --------
 <p><small>Project based on the <a target="_blank" href="https://github.com/jbusecke/cookiecutter-science-project">cookiecutter science project template</a>.</small></p>
