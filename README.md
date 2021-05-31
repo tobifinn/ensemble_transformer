@@ -1,8 +1,8 @@
-Self-Attentive Ensemble Transformer: Modelling Ensemble Interactions in Neural Networks for Earth System Models
+Self-Attentive Ensemble Transformer: Representing Ensemble Interactions in Neural Networks for Earth System Models
 ====================================================================================================================
 If you are using these scripts and the repository, please cite:
 
-> XXXX, 2021. Self-Attentive Ensemble Transformer: Modelling Ensemble 
+> XXXX, 2021. Self-Attentive Ensemble Transformer: Representing Ensemble 
 > Interactions in Neural Networks for Earth System Models. XXXX: XXXX
 --------
 
