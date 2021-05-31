@@ -61,7 +61,9 @@ data and models.
 
 As a first step the ERA5 data has to be downloaded from [[4]](#4). All other 
 scripts to pre-process the data can be found in `scripts/data/`.
-Later, the data will be made public to achieve reproducable results.
+The data raw model data to be put into `scripts/data/raw`.
+Later, the data and trained models will be made public to achieve reproducable 
+results.
 
 Afterwards, the `scripts/train.py` script can be used to train the networks.
 Specific options can be overwritten via Hydra syntax [[3]](#3).
@@ -88,7 +90,9 @@ GitHub issue.
 
 <a id="4">[4]</a> https://cds.climate.copernicus.eu/
 
-<a id="rasp">[Rasp & Lerch 2018]</a> Rasp, Stephan, and Sebastian Lerch. " Neural Networks for Postprocessing Ensemble Weather Forecasts", Monthly Weather Review 146, 11 (2018): 3885-3900, https://doi.org/10.1175/MWR-D-18-0187.1
+<a id="rasp">[Rasp & Lerch 2018]</a> *Rasp, Stephan*, and *Sebastian Lerch*. 
+"Neural Networks for Postprocessing Ensemble Weather Forecasts", Monthly Weather
+Review 146, 11 (2018): 3885-3900, https://doi.org/10.1175/MWR-D-18-0187.1
 
 
 --------
