@@ -91,9 +91,10 @@ GitHub issue.
 
 <a id="4">[4]</a> https://cds.climate.copernicus.eu/
 
-<a id="rasp">[Rasp & Lerch 2018]</a> Rasp, Stephan, and S. Lerch. "Neural 
-Networks for Postprocessing Ensemble Weather Forecasts", Monthly Weather
-Review 146, 11 (2018): 3885-3900, https://doi.org/10.1175/MWR-D-18-0187.1
+<a id="rasp">[Rasp & Lerch 2018]</a> Rasp, Stephan, and Sebastian Lerch. 
+"Neural Networks for Postprocessing Ensemble Weather Forecasts", Monthly 
+Weather Review 146, 11 (2018): 3885-3900,
+https://doi.org/10.1175/MWR-D-18-0187.1
 
 
 --------
