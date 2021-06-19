@@ -10,8 +10,8 @@ If you are using these scripts and the repository, please cite:
 > Models. ArXiv: XXXX
 --------
 
-This project and repository is dedicated to enable processing with neural 
-networks of ensemble data for Earth system models.
+This project and repository is dedicated to enable processing of ensemble data 
+for Earth system models with neural networks. 
 Based on ideas from self-attention and ensemble data assimilation, specifically
 the ensemble Kalman filter, this repostory includes modules for the 
 self-attentive ensemble transformer.
@@ -63,8 +63,6 @@ data and models.
 As a first step the ERA5 data has to be downloaded from [[4]](#4). All other 
 scripts to pre-process the data can be found in `scripts/data/`.
 The data raw model data to be put into `scripts/data/raw`.
-Later, the data and trained models will be made public to achieve reproducable 
-results.
 
 Afterwards, the `scripts/train.py` script can be used to train the networks.
 Specific options can be overwritten via Hydra syntax [[3]](#3).
