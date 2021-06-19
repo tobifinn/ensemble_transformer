@@ -5,8 +5,9 @@ Representing Ensemble Interactions in Neural Networks for Earth System Models
 
 If you are using these scripts and the repository, please cite:
 
-> XXXX, 2021. Self-Attentive Ensemble Transformer: Representing Ensemble 
-> Interactions in Neural Networks for Earth System Models. XXXX: XXXX
+> Tobias Sebastian Finn, 2021. Self-Attentive Ensemble Transformer: 
+> Representing Ensemble Interactions in Neural Networks for Earth System 
+> Models. ArXiv: XXXX
 --------
 
 This project and repository is dedicated to enable processing with neural 
