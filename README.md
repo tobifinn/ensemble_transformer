@@ -3,6 +3,8 @@ Self-Attentive Ensemble Transformer
 Representing Ensemble Interactions in Neural Networks for Earth System Models
 ---
 
+![front_image](https://user-images.githubusercontent.com/17099005/122655730-05859d00-d155-11eb-9096-db106b34b3fe.png)
+
 If you are using these scripts and the repository, please cite:
 
 > Tobias Sebastian Finn, 2021. Self-Attentive Ensemble Transformer: 
@@ -75,6 +77,11 @@ experiments with the baseline models.
 The subfolder `data/models/transformer_scaling` was used for the scaling 
 experiments with the transformer networks.
 
+The front image shows the attention map of the transformer scaling 
+experiment within the first layer for 2019-09-01 12:00 UTC. Red colors indicate 
+regions with high importance for the attention, whereas blueish colors show 
+regions with low and negative importance for the attention. This attention 
+head seems to be activated by regions below the freezing level.
 
 If you have further questions, please feel free to contact me or to create a 
 GitHub issue.
