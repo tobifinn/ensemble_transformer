@@ -2,7 +2,7 @@ defaults:
   - embedding: default
   - optimizer: adam
   - scheduler: plateau
-  - transformer: ensemble
+  - transformer: softmax
 
 _recursive_: False
 _target_: ens_transformer.models.TransformerNet

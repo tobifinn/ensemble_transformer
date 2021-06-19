@@ -1,0 +1,96 @@
+data:
+  data_module:
+    _target_: ens_transformer.data_module.IFSERADataModule
+    data_dir: ${data.dir}
+    normalizer_path: ../data/interim/normalizers.pt
+    include_vars: ${data.include_vars}
+    batch_size: ${batch_size}
+    num_workers: ${num_workers}
+    pin_memory: true
+    subsample_size: 20
+  dir: ../data/processed
+  include_vars:
+  - t2m
+  - t_850
+  - gh_500
+  ens_mems: 50
+  grid_dims:
+  - 32
+  - 64
+model:
+  embedding:
+    _target_: ens_transformer.models.ModelEmbedding
+    n_channels:
+    - 64
+    - 64
+    - 64
+    kernel_size: 5
+    activation: torch.nn.ReLU
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${learning_rate}
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    mode: min
+    factor: 0.3
+    patience: 5
+  transformer:
+    _target_: ens_transformer.transformers.SoftmaxTransformer
+    activation: torch.nn.ReLU
+    key_activation: null
+    same_key_query: false
+    value_layer: true
+    n_heads: 64
+    layer_norm: true
+  _recursive_: false
+  _target_: ens_transformer.models.TransformerNet
+  n_transformers: 5
+  output_channels: 1
+  loss_str: crps
+  learning_rate: ${learning_rate}
+trainer:
+  _recursive_: true
+  _target_: pytorch_lightning.Trainer
+  checkpoint_callback: true
+  gpus: 1
+  progress_bar_refresh_rate: 1
+  max_epochs: 200
+  min_epochs: 10
+  val_check_interval: 1.0
+  flush_logs_every_n_steps: 100
+  log_every_n_steps: 50
+  benchmark: false
+  deterministic: true
+batch_size: 8
+learning_rate: 0.001
+num_workers: 8
+callbacks:
+  early_stopping:
+    _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: eval_loss
+    min_delta: 0.0
+    patience: 20
+    verbose: false
+    mode: min
+    strict: true
+  learning_rate_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: epoch
+  model_checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    filename: '{epoch:03d}-{eval_loss:.4f}'
+    monitor: eval_loss
+    mode: min
+    save_top_k: -1
+    save_last: true
+  save_before_start:
+    _target_: ens_transformer.callbacks.SaveBeforeStartCallback
+    dirpath: ../data/models/${exp_name}
+logger:
+  tensorboard:
+    _target_: pytorch_lightning.loggers.TensorBoardLogger
+    save_dir: ../data/tensorboard/transformer_scale
+    log_graph: true
+exp_name: transformer_${model.n_transformers}_${data.data_module.subsample_size}
+logging_level: DEBUG
+seed: 42

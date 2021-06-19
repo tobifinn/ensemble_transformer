@@ -1,0 +1,5 @@
+- +experiment=transformer
+- model/transformer=softmax
+- model.n_transformers=5
+- data.data_module.subsample_size=20
+- logger.tensorboard.save_dir=../data/tensorboard/transformer_scale

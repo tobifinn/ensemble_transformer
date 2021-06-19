@@ -1,0 +1,5 @@
+- +experiment=transformer
+- model.n_transformers=1
+- data.data_module.subsample_size=50
+- logger.tensorboard.save_dir=../data/tensorboard/subsampling
+- seed=10

@@ -9,7 +9,6 @@
 #
 #    Copyright (C) {2021}  {Tobias Sebastian Finn}
 
-
 # System modules
 import logging
 

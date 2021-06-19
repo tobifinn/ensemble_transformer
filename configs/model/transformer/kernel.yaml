@@ -4,4 +4,4 @@ key_activation: ens_transformer.layers.ELUKernel
 same_key_query: false
 value_layer: true
 n_heads: 64
-layers_norm: true
+layer_norm: true
