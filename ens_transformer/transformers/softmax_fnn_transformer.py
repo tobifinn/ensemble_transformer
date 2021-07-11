@@ -39,7 +39,7 @@ from .softmax_transformer import SoftmaxTransformer
 logger = logging.getLogger(__name__)
 
 
-class SoftmaxFFNTransformer(SoftmaxTransformer):
+class SoftmaxFNNTransformer(SoftmaxTransformer):
     def __init__(
             self,
             n_channels: int = 64,
