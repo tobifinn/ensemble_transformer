@@ -60,6 +60,10 @@ class SoftmaxFNNTransformer(SoftmaxTransformer):
             same_key_query=same_key_query,
             layer_norm=layer_norm
         )
+        if layer_norm is not None:
+            self.fnn_layer_norm = torch.nn.LayerNorm([n_channels, 32, 64])
+        else:
+            self.fnn_layer_norm = torch.nn.Sequential()
         self.fnn_res_layer = torch.nn.Sequential(
             EnsConv2d(
                 in_channels=n_channels,
@@ -81,7 +85,7 @@ class SoftmaxFNNTransformer(SoftmaxTransformer):
             in_tensor: torch.Tensor
     ) -> torch.Tensor:
         out_attention_tensor = super().forward(in_tensor=in_tensor)
-        out_norm_tensor = self.layer_norm(out_attention_tensor)
+        out_norm_tensor = self.fnn_layer_norm(out_attention_tensor)
         residual_tensor = self.fnn_res_layer(out_norm_tensor)
         output_tensor = out_attention_tensor + residual_tensor
         return output_tensor
