@@ -12,6 +12,7 @@
 
 # System modules
 import logging
+from typing import Tuple
 
 # External modules
 import torch
@@ -24,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 def ens_to_batch(in_tensor: torch.Tensor) -> torch.Tensor:
     try:
-        out_tensor = in_tensor.view(-1, *in_tensor.shape[-3:])
+        out_tensor = in_tensor.view(-1, *in_tensor.shape[2:])
     except RuntimeError:
-        out_tensor = in_tensor.reshape(-1, *in_tensor.shape[-3:]).contiguous()
+        out_tensor = in_tensor.reshape(-1, *in_tensor.shape[2:]).contiguous()
     return out_tensor
 
 
@@ -36,22 +37,19 @@ def split_batch_ens(
 ) -> torch.Tensor:
     try:
         out_tensor = in_tensor.view(
-            *like_tensor.shape[:-3], *in_tensor.shape[-3:]
+            *like_tensor.shape[:2], *in_tensor.shape[1:]
         )
     except RuntimeError:
         out_tensor = in_tensor.reshape(
-            *like_tensor.shape[:-3], *in_tensor.shape[-3:]
+            *like_tensor.shape[:2], *in_tensor.shape[1:]
         ).contiguous()
     return out_tensor
 
 
-class EnsembleWrapper(torch.nn.Module):
-    def __init__(self, base_layer: torch.nn.Module):
-        super().__init__()
-        self.base_layer = base_layer
-
-    def forward(self, in_tensor: torch.Tensor):
-        in_tensor_batched = ens_to_batch(in_tensor)
-        modified_tensor = self.base_layer(in_tensor_batched)
-        out_tensor = split_batch_ens(modified_tensor, in_tensor)
-        return out_tensor
+def split_mean_perts(
+        in_tensor: torch.Tensor,
+        dim: int = 1
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    mean_tensor = in_tensor.mean(dim=dim, keepdims=True)
+    perts_tensor = in_tensor - mean_tensor
+    return mean_tensor, perts_tensor
