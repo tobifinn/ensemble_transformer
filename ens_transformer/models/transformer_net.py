@@ -107,7 +107,7 @@ class TransformerNet(BaseNet):
             output_projector=out_layer,
             activation=cfg['activation'],
             reweighter=instantiate(cfg['reweighter']),
-            weight_estimator=instantiate(cfg['zeight_estimator'])
+            weight_estimator=instantiate(cfg['weight_estimator'])
         )
         return module
 
