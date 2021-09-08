@@ -23,7 +23,7 @@ import numpy as np
 
 # Internal modules
 from .base_net import BaseNet
-from ens_transformer.layers import EnsConv2d
+from ens_transformer.layers.conv import EnsConv2d
 from ens_transformer.layers import attention as attention_layers
 
 
@@ -99,13 +99,18 @@ class TransformerNet(BaseNet):
             padding=0
         )
         torch.nn.init.zeros_(out_layer.conv2d.base_layer.weight)
+
+        try:
+            activation = get_class(cfg['activation'])(inplace=True)
+        except ImportError:
+            activation = torch.nn.Sequential()
         
         module = attention_layers.SelfAttentionModule(
             value_projector=value_layer,
             key_projector=key_layer,
             query_projector=query_layer,
             output_projector=out_layer,
-            activation=cfg['activation'],
+            activation=activation,
             reweighter=instantiate(cfg['reweighter']),
             weight_estimator=instantiate(cfg['weight_estimator'])
         )
