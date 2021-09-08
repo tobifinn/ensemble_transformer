@@ -18,7 +18,7 @@ from abc import abstractmethod
 # External modules
 import pytorch_lightning as pl
 import torch
-from hydra.utils import get_class, instantiate
+from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 import numpy as np
