@@ -98,7 +98,7 @@ class BaseNet(pl.LightningModule):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         output_mean = output_ensemble.mean(dim=1)
         output_std = output_ensemble.std(dim=1, unbiased=True)
-        output_std = output_std.clamp(min=1E-6, max=1E6)
+        output_std = output_std.clamp(min=1E-6)
         return output_mean, output_std
 
     def configure_optimizers(
