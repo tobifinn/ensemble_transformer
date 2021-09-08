@@ -61,9 +61,9 @@ class PPNNet(BaseNet):
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
         embedded_tensor = self.embedding(input_tensor)
-        mean_embedding = embedded_tensor.mean(dim=1)
-        in_mean = input_tensor[..., [0], :, :].mean(dim=1)
-        in_std = input_tensor[..., [0], :, :].std(dim=1)
+        mean_embedding = embedded_tensor.mean(dim=1, keepdims=True)
+        in_mean = input_tensor[..., [0], :, :].mean(dim=1, keepdims=True)
+        in_std = input_tensor[..., [0], :, :].std(dim=1, keepdims=True)
         in_embedded = torch.cat([mean_embedding, in_mean, in_std], dim=-3)
         transformed_tensor = self.transformers(in_embedded)
         output_tensor = self.output_layer(transformed_tensor)
