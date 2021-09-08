@@ -19,8 +19,8 @@ import torch
 from hydra.utils import get_class
 
 # Internal modules
-from . import EarthPadding, EnsConv2d
-
+from .conv import EnsConv2d
+from .padding import EarthPadding
 
 logger = logging.getLogger(__name__)
 
