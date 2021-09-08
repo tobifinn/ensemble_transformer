@@ -17,7 +17,7 @@ import logging
 import torch
 
 # Internal modules
-from ..utils import EnsembleWrapper
+from .ens_wrapper import EnsembleWrapper
 
 
 logger = logging.getLogger(__name__)
