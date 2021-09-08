@@ -4,6 +4,6 @@ layer_norm: true
 value_layer: true
 key_activation: torch.nn.ReLU
 reweighter:
-  - _target_: ens_transformer.layers.attention.StateReweighter
+  _target_: ens_transformer.layers.attention.StateReweighter
 weight_estimator:
-  - _target_: ens_transformer.layers.attention.SoftmaxWeights
+  _target_: ens_transformer.layers.attention.SoftmaxWeights
