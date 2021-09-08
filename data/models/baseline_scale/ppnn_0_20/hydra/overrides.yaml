@@ -1,4 +1,0 @@
-- +experiment=ppnn
-- model.n_transformers=0
-- data.data_module.subsample_size=20
-- logger.tensorboard.save_dir=../data/tensorboard/baseline_scale
