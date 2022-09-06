@@ -37,8 +37,7 @@ The folder structure is the following:
 # sub directories and the hydra folder.
 |   |-- models         # The trained models will be stored here
 |   |-- processed      # The processed data is stored here
-|   |   |-- era5       # The processed ERA5 data as zarr directories
-|   |   |-- ifs        # The processed IFS data as zarr directories
+|   |   |-- dataset    # The processed datasets zarr directories
 |   |   |-- predicted  # The post-processed network predictions as NetCDF-files
 |   |-- raw            # The raw data should be stored here
 |   |   |-- era5       # The raw ERA5 data as NetCDF-files
@@ -62,9 +61,9 @@ The folder structure is the following:
 In almost all scripts only relative directories are used to reference the 
 data and models.
 
-As a first step the ERA5 data has to be downloaded from [[4]](#4). All other 
-scripts to pre-process the data can be found in `scripts/data/`.
-The data raw model data to be put into `scripts/data/raw`.
+As a first step the ERA5 data has to be downloaded from [[4]](#4).
+All other scripts to pre-process the data can be found in `scripts/data/`.
+The data raw model data has to be put into `data/raw`.
 
 Afterwards, the `scripts/train.py` script can be used to train the networks.
 Specific options can be overwritten via Hydra syntax [[3]](#3).
