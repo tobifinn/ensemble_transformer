@@ -12,14 +12,14 @@
 
 # System modules
 import logging
-from typing import Optional, Union, Tuple, Callable, Iterable
+from typing import Optional, Union, Tuple, Callable
 import os
 
 # External modules
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import DataLoader, random_split
-from torchvision.transforms import Compose, Lambda
+from torch.utils.data import DataLoader
+from torchvision.transforms import Compose
 
 # Internal modules
 from .dataset_ifs_era import IFSERADataset
@@ -32,24 +32,23 @@ logger = logging.getLogger(__name__)
 class IFSERADataModule(pl.LightningDataModule):
     def __init__(
             self,
-            data_dir: str = '../data/processed',
+            data_dir: str = '../data/processed/dataset',
             batch_size: int = 64,
-            normalizer_path: Union[None, str] =
-                '../data/interim/normalizers.pt',
-            include_vars: Union[None, Iterable[str]] = None,
             subsample_size: Union[None, int] = None,
-            num_workers: int = 4,
-            pin_memory: bool = True
+            pin_memory: bool = True,
+            num_workers: int = 4
     ):
         super().__init__()
         self._split_perc = 0.1
         self.data_dir = data_dir
         self.batch_size = batch_size
-        self.normalizer_path = normalizer_path
-        self.include_vars = include_vars
-        self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.num_workers = num_workers
         self.subsample_size = subsample_size
+
+        self.ds_train = None
+        self.ds_eval = None
+        self.ds_test = None
 
     @staticmethod
     def _init_transforms(
@@ -64,40 +63,18 @@ class IFSERADataModule(pl.LightningDataModule):
         return input_transform, target_transform
 
     def setup(self, stage: Optional[str] = None) -> None:
-        input_transform, target_transform = self._init_transforms(
-            self.normalizer_path
-        )
-        self.ds_test = IFSERADataset(
-            ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_test'),
-            era_path=os.path.join(self.data_dir, 'era5', 'ds_test'),
-            include_vars=self.include_vars,
-            input_transform=input_transform,
-            target_transform=target_transform,
-            subsample_size=None
-        )
-        self.lats = self.ds_test.ifs['latitude'].values
-        train_full = IFSERADataset(
-            ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
-            era_path=os.path.join(self.data_dir, 'era5', 'ds_train'),
-            include_vars=self.include_vars,
-            input_transform=input_transform,
-            target_transform=target_transform,
+        self.ds_train = IFSERADataset(
+            dataset_path=os.path.join(self.data_dir, 'train'),
             subsample_size=self.subsample_size
         )
-        len_eval = int(len(train_full) * self._split_perc)
-        len_train = len(train_full)-len_eval
-        self.ds_train, self.ds_eval = random_split(
-            train_full, [len_train, len_eval]
-        )
-        val_full = IFSERADataset(
-            ifs_path=os.path.join(self.data_dir, 'ifs', 'ds_train'),
-            era_path=os.path.join(self.data_dir, 'era5', 'ds_train'),
-            include_vars=self.include_vars,
-            input_transform=input_transform,
-            target_transform=target_transform,
+        self.ds_eval = IFSERADataset(
+            dataset_path=os.path.join(self.data_dir, 'eval'),
             subsample_size=None
         )
-        self.ds_eval.dataset = val_full
+        self.ds_test = IFSERADataset(
+            dataset_path=os.path.join(self.data_dir, 'test'),
+            subsample_size=None
+        )
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
