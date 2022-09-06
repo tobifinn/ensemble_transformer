@@ -12,13 +12,13 @@
 
 # System modules
 import logging
-from typing import Union, Iterable, Tuple, Callable
+from typing import Tuple, Union
 
 # External modules
 from torch.utils.data.dataset import Dataset
-import xarray as xr
 import numpy as np
 import torch
+import zarr
 
 # Internal modules
 
@@ -26,58 +26,49 @@ import torch
 logger = logging.getLogger(__name__)
 
 
+def to_tensor(in_array: "np.ndarray") -> torch.Tensor:
+    in_tensor = torch.from_numpy(in_array)
+    out_tensor = in_tensor.float()
+    return out_tensor
+
+
 class IFSERADataset(Dataset):
     def __init__(
             self,
-            ifs_path: str,
-            era_path: str,
-            include_vars: Union[None, Iterable[str]] = None,
-            input_transform: Union[None, Callable] = None,
-            target_transform: Union[None, Callable] = None,
+            dataset_path: str,
             subsample_size: Union[None, int] = 20,
     ):
         super().__init__()
-        self.ifs_path = ifs_path
-        self.era_path = era_path
-        self.include_vars = include_vars
-        self.input_transform = input_transform
-        self.target_transform = target_transform
+        self.dataset: zarr.Group = None
+        self._dataset_path = None
+        self.dataset_path = dataset_path
         self.subsample_size = subsample_size
-        self.era5 = self.get_era5()
-        self.ifs = self.get_ifs()
 
-    def get_era5(self) -> xr.DataArray:
-        ds_era = xr.open_zarr(self.era_path)['t2m']
-        ds_era = ds_era - 273.15
-        return ds_era
+    @property
+    def dataset_path(self) -> str:
+        return self._dataset_path
 
-    def get_ifs(self) -> xr.DataArray:
-        ds_ifs = xr.open_zarr(self.ifs_path)
-        if self.include_vars is not None:
-            ds_ifs = ds_ifs[list(self.include_vars)]
-        ds_ifs = ds_ifs.to_array('var_name')
-        ds_ifs = ds_ifs.transpose('time', 'ensemble', 'var_name', 'latitude',
-                                  'longitude')
-        return ds_ifs
+    @dataset_path.setter
+    def dataset_path(self, new_path: str) -> None:
+        self.dataset = zarr.open(new_path, mode='r')
+        self._dataset_path = new_path
 
     def __len__(self) -> int:
-        return len(self.era5)
+        return self.dataset["input"].shape[0]
 
     def __getitem__(
             self,
             idx: int
-    ) -> Tuple[Union[np.ndarray, torch.Tensor],
-               Union[np.ndarray, torch.Tensor]]:
-        ifs_tensor = self.ifs[idx].values
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        input_tensor = self.dataset["input"][idx]
+        target_tensor = self.dataset["target"][idx]
+
         if self.subsample_size is not None:
             ens_idx = np.random.choice(
-                ifs_tensor.shape[0], size=self.subsample_size, replace=False
+                input_tensor.shape[0], size=self.subsample_size,
+                replace=False
             )
-            ifs_tensor = ifs_tensor[ens_idx]
-        if self.input_transform is not None:
-            ifs_tensor = self.input_transform(ifs_tensor)
-
-        era_tensor = self.era5[idx].values
-        if self.target_transform is not None:
-            era_tensor = self.target_transform(era_tensor)
-        return ifs_tensor, era_tensor
+            input_tensor = input_tensor[ens_idx]
+        input_tensor = to_tensor(input_tensor)
+        target_tensor = to_tensor(target_tensor)
+        return input_tensor, target_tensor
