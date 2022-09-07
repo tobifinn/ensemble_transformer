@@ -1,12 +1,6 @@
-defaults:
-  - data_module: ifs_era
-
-dir: '../data/processed'
-include_vars:
-  - 't2m'
-  - 't_850'
-  - 'gh_500'
-ens_mems: 50
-grid_dims:
-  - 32
-  - 64
+_target_: ens_transformer.data_module.IFSERADataModule
+data_dir: "../data/processed/dataset"
+subsample_size: 20
+batch_size: ${batch_size}
+num_workers: ${num_workers}
+pin_memory: true
