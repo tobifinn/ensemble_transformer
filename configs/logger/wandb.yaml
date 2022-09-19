@@ -1,0 +1,6 @@
+_target_: pytorch_lightning.loggers.WandbLogger
+project: "ensemble_transformer"
+entity: tobifinn
+save_dir: 'data'
+name: '${exp_name}'
+log_model: true
