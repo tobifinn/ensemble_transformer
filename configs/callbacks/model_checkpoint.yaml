@@ -3,5 +3,5 @@ model_checkpoint:
   filename: '{epoch:03d}-{eval_loss:.4f}'
   monitor: 'eval_loss'
   mode: 'min'
-  save_top_k: -1
+  save_top_k: 10
   save_last: True
