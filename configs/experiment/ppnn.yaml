@@ -1,4 +1,4 @@
 # @package _global_
 defaults:
   - override /model: ppnn
-exp_name: ppnn_${model.n_transformers}_${data.data_module.subsample_size}
+exp_name: ppnn_${model.n_transformers}_${data.subsample_size}

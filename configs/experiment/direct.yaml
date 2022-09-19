@@ -1,4 +1,4 @@
 # @package _global_
 defaults:
   - override /model: direct
-exp_name: direct_${model.n_transformers}_${data.data_module.subsample_size}
+exp_name: direct_${model.n_transformers}_${data.subsample_size}
