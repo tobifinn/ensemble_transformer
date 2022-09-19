@@ -41,7 +41,7 @@ def main_train(cfg: DictConfig) -> None:
     ))
     pl.seed_everything(cfg.seed, workers=True)
 
-    data_module: pl.LightningDataModule = instantiate(cfg.data.data_module)
+    data_module: pl.LightningDataModule = instantiate(cfg.data)
     data_module.setup()
 
     network: pl.LightningModule = instantiate(
