@@ -35,18 +35,18 @@ import numpy as np
 from hydra.utils import get_class
 
 # Internal modules
-from ..layers import EnsConv2d, EarthPadding
+from . import EnsConv2d, EarthPadding
 
 
 logger = logging.getLogger(__name__)
 
 
 __all__ = [
-    'BaseTransformer'
+    'SoftmaxTransformer'
 ]
 
 
-class BaseTransformer(torch.nn.Module):
+class SoftmaxTransformer(torch.nn.Module):
     def __init__(
             self,
             n_channels: int = 64,

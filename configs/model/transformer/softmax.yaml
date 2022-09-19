@@ -1,7 +1,2 @@
-_target_: ens_transformer.transformers.SoftmaxTransformer
-activation: torch.nn.ReLU
-key_activation: Null
-same_key_query: false
-value_layer: true
+_target_: ens_transformer.layers.SoftmaxTransformer
 n_heads: 64
-layer_norm: true
