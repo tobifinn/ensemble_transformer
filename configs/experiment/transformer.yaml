@@ -2,4 +2,4 @@
 defaults:
   - override /model: transformer
   - override /model/transformer: softmax
-exp_name: transformer_${model.n_transformers}_${data.data_module.subsample_size}
+exp_name: transformer_${model.n_transformers}_${data.subsample_size}
