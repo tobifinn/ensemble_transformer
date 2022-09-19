@@ -34,8 +34,7 @@ logger = logging.getLogger(__name__)
 class BaseNet(pl.LightningModule):
     def __init__(
             self,
-            optimizer: DictConfig,
-            scheduler: DictConfig,
+            optimizer: DictConfig,#
             transformer: DictConfig,
             embedding: DictConfig,
             in_channels: int = 3,
@@ -76,7 +75,6 @@ class BaseNet(pl.LightningModule):
         })
         self.loss_function = self.metrics[loss_str]
         self.optimizer_cfg = optimizer
-        self.scheduler_cfg = scheduler
         self.save_hyperparameters()
 
     @property
@@ -105,17 +103,6 @@ class BaseNet(pl.LightningModule):
             self
     ) -> Union[torch.optim.Optimizer, Dict[str, Any]]:
         optimizer = instantiate(self.optimizer_cfg, self.parameters())
-        if self.scheduler_cfg is not None:
-            scheduler = instantiate(self.scheduler_cfg, optimizer=optimizer)
-            optimizer = {
-                'optimizer': optimizer,
-                'lr_scheduler': {
-                    'scheduler': scheduler,
-                    'monitor': 'eval_loss',
-                    'interval': 'epoch',
-                    'frequency': 1,
-                }
-            }
         return optimizer
 
     def forward(self, input_tensor) -> torch.Tensor:
