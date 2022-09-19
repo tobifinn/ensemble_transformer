@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class BaseNet(pl.LightningModule):
     def __init__(
             self,
-            optimizer: DictConfig,#
+            optimizer: DictConfig,
             transformer: DictConfig,
             embedding: DictConfig,
             in_channels: int = 3,
@@ -123,21 +123,6 @@ class BaseNet(pl.LightningModule):
         loss = self.loss_function(prediction, target_tensor).mean()
         self.log('loss', loss, prog_bar=True)
         return loss
-
-    def _log_embedding(self, embedded_ens: torch.Tensor):
-        labels = torch.arange(self.hparams['batch_size'],
-                              device=self.device)
-        labels = labels.view(self.hparams['batch_size'], 1)
-        labels = torch.ones_like(embedded_ens[..., 0]) * labels
-
-        embedded_ens = embedded_ens.view(
-            -1, embedded_ens.shape[-1]
-        )
-        labels = labels.view(-1)
-        self.logger.experiment.add_embedding(
-            embedded_ens, metadata=labels, tag='weather_embedding',
-            global_step=self.global_step
-        )
 
     def validation_step(
             self,
