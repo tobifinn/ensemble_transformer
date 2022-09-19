@@ -64,6 +64,7 @@ def process_ifs_data(data_path: str) -> xr.DataArray:
         parallel=True, chunks={'time': 2}
     )
     ds_ifs_merged = xr.merge([ds_ifs_sfc, ds_ifs_t, ds_ifs_gh])
+    ds_ifs_merged = ds_ifs_merged[["t2m", "t850", "gh500"]]
     ds_ifs_merged = ds_ifs_merged.isel(latitude=slice(None, None, -1))
     ds_ifs_merged = ds_ifs_merged.rename({'number': 'ensemble'})
     ds_ifs_merged = ds_ifs_merged.to_array(dim="in_channels")
