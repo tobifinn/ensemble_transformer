@@ -138,13 +138,15 @@ class BaseTransformer(torch.nn.Module):
     ) -> torch.Tensor:
         return torch.einsum('bichw, bjchw->bcij', x, y)
 
-    @abc.abstractmethod
     def _get_weights(
             self,
             key: torch.Tensor,
             query: torch.Tensor
     ) -> torch.Tensor:
-        pass
+        gram_mat = self._dot_product(key, query)
+        gram_mat = gram_mat / np.sqrt(key.shape[-2]*key.shape[-1])
+        weights = torch.softmax(gram_mat, dim=-2)
+        return weights
 
     @staticmethod
     def _apply_weights(

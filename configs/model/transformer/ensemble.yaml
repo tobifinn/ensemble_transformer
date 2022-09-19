@@ -1,7 +1,0 @@
-_target_: ens_transformer.transformers.EnsTransformer
-activation: torch.nn.ReLU
-key_activation: torch.nn.ReLU
-same_key_query: false
-value_layer: true
-n_heads: 64
-layer_norm: true
