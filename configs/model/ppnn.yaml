@@ -1,7 +1,7 @@
 defaults:
   - embedding: default
   - optimizer: adam
-  - scheduler: plateau
+  - scheduler: null
   - transformer: residual
 
 _recursive_: False
