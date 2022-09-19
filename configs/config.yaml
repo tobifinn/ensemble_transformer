@@ -8,8 +8,7 @@ defaults:
       - learning_rate_monitor
       - model_checkpoint
       - save_before_start
-  - logger:
-      - wandb
+  - logger: wandb
 
 exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 logging_level: DEBUG
