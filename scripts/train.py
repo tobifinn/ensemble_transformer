@@ -46,7 +46,6 @@ def main_train(cfg: DictConfig) -> None:
 
     network: pl.LightningModule = instantiate(
         cfg.model,
-        in_channels=len(cfg.data.include_vars),
         learning_rate=cfg.learning_rate
     )
     network.hparams['batch_size'] = cfg.batch_size
