@@ -1,7 +1,6 @@
 defaults:
   - embedding: default
   - optimizer: adam
-  - scheduler: null
   - transformer: softmax
 
 _recursive_: False
