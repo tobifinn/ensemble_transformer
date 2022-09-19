@@ -19,6 +19,7 @@ import hydra
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import DictConfig
+from pytorch_lightning.loggers import WandbLogger
 
 import matplotlib.figure
 
@@ -65,10 +66,13 @@ def main_train(cfg: DictConfig) -> None:
 
     training_logger = None
     if cfg.logger is not None:
-        for _, logger_cfg in cfg.logger.items():
-            training_logger: LightningLoggerBase = instantiate(
-                logger_cfg, name=os.path.basename(hydra_dir)
-            )
+        training_logger: LightningLoggerBase = instantiate(
+            cfg.logger, name=os.path.basename(hydra_dir)
+        )
+
+    if isinstance(training_logger, WandbLogger):
+        main_logger.info("Watch gradients and parameters of model")
+        training_logger.watch(network, log="all", log_freq=50)
 
     trainer: pl.Trainer = instantiate(
         cfg.trainer,

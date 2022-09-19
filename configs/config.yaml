@@ -9,7 +9,7 @@ defaults:
       - model_checkpoint
       - save_before_start
   - logger:
-      - tensorboard
+      - wandb
 
 exp_name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 logging_level: DEBUG
