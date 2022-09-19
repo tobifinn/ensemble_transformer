@@ -3,7 +3,7 @@ _target_: pytorch_lightning.Trainer
 checkpoint_callback: true
 gpus: 1
 progress_bar_refresh_rate: 1
-max_epochs: 200
+max_epochs: 1000
 min_epochs: 10
 val_check_interval: 1.0
 flush_logs_every_n_steps: 100
