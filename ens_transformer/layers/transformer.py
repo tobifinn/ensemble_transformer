@@ -52,9 +52,6 @@ class SoftmaxTransformer(torch.nn.Module):
             n_channels: int = 64,
             n_heads: int = 64,
             activation: Union[None, str] = 'torch.nn.SELU',
-            key_activation: Union[None, str] = 'torch.nn.SELU',
-            value_layer: bool = True,
-            same_key_query: bool = False,
             layer_norm: bool = False,
     ):
         super().__init__()
@@ -67,46 +64,38 @@ class SoftmaxTransformer(torch.nn.Module):
         else:
             self.layer_norm = torch.nn.Sequential()
 
-        self.value_layer = self._construct_value_layer(
-            n_channels=n_channels,
-            n_heads=n_heads,
-            value_layer=value_layer
+        self.value_layer = EnsConv2d(
+            in_channels=n_channels,
+            out_channels=n_heads,
+            kernel_size=1,
+            bias=False
         )
         self.key_layer = self._construct_branch_layer(
             n_channels=n_channels,
             n_heads=n_heads,
-            key_activation=key_activation,
+            key_activation=None,
         )
-        if same_key_query:
-            self.query_layer = self.key_layer
-        else:
-            self.query_layer = self._construct_branch_layer(
-                n_channels=n_channels,
-                n_heads=n_heads,
-                key_activation=key_activation,
-            )
+        self.query_layer = self._construct_branch_layer(
+            n_channels=n_channels,
+            n_heads=n_heads,
+            key_activation=None,
+        )
         self.out_layer = EnsConv2d(
             in_channels=n_heads, out_channels=n_channels, kernel_size=1,
             padding=0
         )
         torch.nn.init.zeros_(self.out_layer.conv2d.base_layer.weight)
-
-    @staticmethod
-    def _construct_value_layer(
-            n_channels: int = 64,
-            n_heads: int = 64,
-            value_layer: bool = True,
-    ) -> torch.nn.Sequential:
-        layers = []
-        if value_layer:
-            conv_layer = EnsConv2d(
-                in_channels=n_channels,
-                out_channels=n_heads,
-                kernel_size=1,
-                bias=False
+        self.mixing_layer = torch.nn.Sequential(
+            EnsConv2d(
+                in_channels=n_channels, out_channels=2*n_channels,
+                kernel_size=1, padding=0
+            ),
+            torch.nn.GELU(),
+            EnsConv2d(
+                in_channels=2*n_channels, out_channels=n_channels,
+                kernel_size=1, padding=0
             )
-            layers.append(conv_layer)
-        return torch.nn.Sequential(*layers)
+        )
 
     @staticmethod
     def _construct_branch_layer(
@@ -181,7 +170,8 @@ class SoftmaxTransformer(torch.nn.Module):
         weights = self._get_weights(key=key, query=query)
 
         transformed = self._apply_weights(value, weights)
-        out_tensor = in_tensor + self.out_layer(transformed)
-        if self.activation is not None:
-            out_tensor = self.activation(out_tensor)
+        after_transformed_tensor = in_tensor + self.out_layer(transformed)
+        out_tensor = after_transformed_tensor + self.mixing_layer(
+            after_transformed_tensor
+        )
         return out_tensor
