@@ -51,14 +51,9 @@ class SoftmaxTransformer(torch.nn.Module):
             self,
             n_channels: int = 64,
             n_heads: int = 64,
-            activation: Union[None, str] = 'torch.nn.SELU',
             layer_norm: bool = False,
     ):
         super().__init__()
-        if activation is not None:
-            self.activation = get_class(activation)(inplace=True)
-        else:
-            self.activation = None
         if layer_norm is not None:
             self.layer_norm = torch.nn.LayerNorm([n_channels, 32, 64])
         else:
@@ -70,19 +65,23 @@ class SoftmaxTransformer(torch.nn.Module):
             kernel_size=1,
             bias=False
         )
-        self.key_layer = self._construct_branch_layer(
-            n_channels=n_channels,
-            n_heads=n_heads,
-            key_activation=None,
+        self.key_layer = EnsConv2d(
+            in_channels=n_channels,
+            out_channels=n_heads,
+            kernel_size=1,
+            bias=False,
+            padding=0
         )
-        self.query_layer = self._construct_branch_layer(
-            n_channels=n_channels,
-            n_heads=n_heads,
-            key_activation=None,
+        self.query_layer = EnsConv2d(
+            in_channels=n_channels,
+            out_channels=n_heads,
+            kernel_size=1,
+            bias=False,
+            padding=0
         )
         self.out_layer = EnsConv2d(
             in_channels=n_heads, out_channels=n_channels, kernel_size=1,
-            padding=0
+            bias=False, padding=0
         )
         torch.nn.init.zeros_(self.out_layer.conv2d.base_layer.weight)
         self.mixing_layer = torch.nn.Sequential(
@@ -96,29 +95,6 @@ class SoftmaxTransformer(torch.nn.Module):
                 kernel_size=1, padding=0
             )
         )
-
-    @staticmethod
-    def _construct_branch_layer(
-            n_channels: int = 64,
-            n_heads: int = 64,
-            key_activation: Union[None, str] = None,
-    ) -> torch.nn.Sequential:
-        conv_layer = EnsConv2d(
-            in_channels=n_channels,
-            out_channels=n_heads,
-            kernel_size=1,
-            bias=False
-        )
-        if key_activation == 'torch.nn.SELU':
-            lecun_stddev = np.sqrt(1/n_channels)
-            torch.nn.init.normal_(
-                conv_layer.conv2d.base_layer.weight,
-                std=lecun_stddev
-            )
-        layers = [conv_layer]
-        if key_activation:
-            layers.append(get_class(key_activation)(inplace=True))
-        return torch.nn.Sequential(*layers)
 
     @staticmethod
     def _dot_product(
