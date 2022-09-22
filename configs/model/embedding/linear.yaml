@@ -1,0 +1,5 @@
+_target_: ens_transformer.models.ModelEmbedding
+n_channels:
+  - 64
+kernel_size: 1
+activation: "none"
