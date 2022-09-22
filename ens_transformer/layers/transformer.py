@@ -52,6 +52,7 @@ class SoftmaxTransformer(torch.nn.Module):
             n_channels: int = 64,
             n_heads: int = 64,
             layer_norm: bool = False,
+            n_mixing: int = 64
     ):
         super().__init__()
         if layer_norm is not None:
@@ -86,12 +87,12 @@ class SoftmaxTransformer(torch.nn.Module):
         torch.nn.init.zeros_(self.out_layer.conv2d.base_layer.weight)
         self.mixing_layer = torch.nn.Sequential(
             EnsConv2d(
-                in_channels=n_channels, out_channels=2*n_channels,
+                in_channels=n_channels, out_channels=n_mixing,
                 kernel_size=1, padding=0
             ),
             torch.nn.GELU(),
             EnsConv2d(
-                in_channels=2*n_channels, out_channels=n_channels,
+                in_channels=2*n_channels, out_channels=n_mixing,
                 kernel_size=1, padding=0
             )
         )
