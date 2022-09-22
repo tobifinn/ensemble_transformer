@@ -37,12 +37,15 @@ class ModelEmbedding(torch.nn.Module):
         super().__init__()
         modules = []
         old_channels = in_channels
+        pad_size = (kernel_size-1)//2
         for curr_channel in n_channels:
-            modules.append(EarthPadding((kernel_size-1)//2))
+            if pad_size > 0:
+                modules.append(EarthPadding(pad_size))
             modules.append(EnsConv2d(
                 old_channels, curr_channel, kernel_size=kernel_size
             ))
-            modules.append(get_class(activation)(inplace=True))
+            if activation != "none":
+                modules.append(get_class(activation)(inplace=True))
             old_channels = curr_channel
         self.n_channels = n_channels
         self.activation = activation
