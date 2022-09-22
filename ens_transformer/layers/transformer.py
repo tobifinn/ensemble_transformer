@@ -92,7 +92,7 @@ class SoftmaxTransformer(torch.nn.Module):
             ),
             torch.nn.GELU(),
             EnsConv2d(
-                in_channels=2*n_channels, out_channels=n_mixing,
+                in_channels=n_mixing, out_channels=n_channels,
                 kernel_size=1, padding=0
             )
         )
