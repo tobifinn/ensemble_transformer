@@ -1,2 +1,3 @@
 _target_: ens_transformer.layers.SoftmaxTransformer
 n_heads: 64
+n_mixing: 64
