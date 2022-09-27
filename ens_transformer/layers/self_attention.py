@@ -42,7 +42,7 @@ class EnsembleSelfAttention(torch.nn.Module):
         self.gamma = torch.nn.Parameter(
             torch.full((n_channels,), layer_scale_init_value),
             requires_grad=True
-        ) if layer_scale_init_value > 0 else None
+        ) if layer_scale_init_value is not None else 1.
 
     def project_tensor(
             self,
