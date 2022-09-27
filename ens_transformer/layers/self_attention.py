@@ -33,10 +33,10 @@ class EnsembleSelfAttention(torch.nn.Module):
     ):
         super().__init__()
         self.normaliser = torch.nn.LayerNorm([n_channels, 32, 64])
-        self.value_layer = torch.nn.Linear(n_channels, n_heads, bias=False)
-        self.query_layer = torch.nn.Linear(n_channels, n_heads, bias=False)
-        self.key_layer = torch.nn.Linear(n_channels, n_heads, bias=False)
-        self.out_layer = torch.nn.Linear(n_heads, n_channels, bias=False)
+        self.value_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
+        self.query_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
+        self.key_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
+        self.out_layer = torch.nn.Linear(n_heads, n_channels, bias=True)
         self.scale = (32 * 64) ** -0.5
 
     def project_tensor(
