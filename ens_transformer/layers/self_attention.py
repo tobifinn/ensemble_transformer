@@ -30,6 +30,7 @@ class EnsembleSelfAttention(torch.nn.Module):
             self,
             n_channels: int = 64,
             n_heads: int = 64,
+            layer_scale_init_value: float = 1e-6,
     ):
         super().__init__()
         self.normaliser = torch.nn.LayerNorm([n_channels, 32, 64])
@@ -37,7 +38,11 @@ class EnsembleSelfAttention(torch.nn.Module):
         self.query_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
         self.key_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
         self.out_layer = torch.nn.Linear(n_heads, n_channels, bias=True)
-        self.scale = (32 * 64) ** -0.5
+        self.attention_scale = (32 * 64) ** -0.5
+        self.gamma = torch.nn.Parameter(
+            torch.full((n_channels,), layer_scale_init_value),
+            requires_grad=True
+        ) if layer_scale_init_value > 0 else None
 
     def project_tensor(
             self,
@@ -50,7 +55,7 @@ class EnsembleSelfAttention(torch.nn.Module):
 
     def estimate_attention(self, key: torch.Tensor, query: torch.Tensor):
         dot_product = torch.einsum('bihwc, bjhwc->bijc', key, query)
-        dot_product = dot_product * self.scale
+        dot_product = dot_product * self.attention_scale
         attention = torch.softmax(dot_product, dim=-3)
         return attention
 
@@ -66,7 +71,7 @@ class EnsembleSelfAttention(torch.nn.Module):
         transformed_v = torch.einsum(
             'bijc,bihwc->bjhwc', attention, v_tensor
         )
-        out_tensor = self.out_layer(transformed_v)
+        out_tensor = self.out_layer(transformed_v) * self.gamma
         out_tensor = rearrange(out_tensor, pattern="behwc->bechw")
         out_tensor = in_tensor + out_tensor
         return out_tensor
