@@ -27,14 +27,14 @@ class EnsembleMixinLayer(torch.nn.Module):
     def __init__(
             self,
             n_channels: int = 64,
-            n_hidden: int = 64,
+            n_mixin: int = 64,
             layer_scale_init_value: float = 1e-6,
     ):
         super().__init__()
         self.normaliser = torch.nn.LayerNorm([n_channels, 32, 64])
-        self.layer_in = torch.nn.Linear(n_channels, n_hidden)
+        self.layer_in = torch.nn.Linear(n_channels, n_mixin)
         self.activation = torch.nn.GELU()
-        self.layer_out = torch.nn.Linear(n_hidden, n_channels)
+        self.layer_out = torch.nn.Linear(n_mixin, n_channels)
         self.gamma = torch.nn.Parameter(
             torch.full((n_channels,), layer_scale_init_value),
             requires_grad=True
