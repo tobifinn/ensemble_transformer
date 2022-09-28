@@ -34,9 +34,7 @@ class EnsembleSelfAttention(torch.nn.Module):
     ):
         super().__init__()
         self.normaliser = torch.nn.LayerNorm([n_channels, 32, 64])
-        self.value_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
-        self.query_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
-        self.key_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
+        self.qkv_layer = torch.nn.Linear(n_channels, n_heads*3, bias=True)
         self.out_layer = torch.nn.Linear(n_heads, n_channels, bias=True)
         self.temperature = (32 * 64) ** -0.5
         self.gamma = torch.nn.Parameter(
@@ -48,10 +46,9 @@ class EnsembleSelfAttention(torch.nn.Module):
             self,
             in_tensor: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        query_tensor = self.query_layer(in_tensor)
-        key_tensor = self.key_layer(in_tensor)
-        value_tensor = self.value_layer(in_tensor)
-        return value_tensor, key_tensor, query_tensor
+        qkv_tensor = self.qkv_layer(in_tensor)
+        q_tensor, k_tensor, v_tensor = qkv_tensor.chunk(3, dim=-1)
+        return q_tensor, k_tensor, v_tensor
 
     def estimate_attention(self, key: torch.Tensor, query: torch.Tensor):
         dot_product = torch.einsum(
@@ -67,7 +64,7 @@ class EnsembleSelfAttention(torch.nn.Module):
             normalised_tensor,
             pattern="b e c h w -> b e h w c"
         )
-        v_tensor, k_tensor, q_tensor = self.project_tensor(
+        q_tensor, k_tensor, v_tensor = self.project_tensor(
             normalised_channels_last
         )
         attention = self.estimate_attention(k_tensor, q_tensor)
