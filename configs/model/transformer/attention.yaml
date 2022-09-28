@@ -1,0 +1,3 @@
+_target_: ens_transformer.layers.EnsembleTransformerLayer
+n_heads: 64
+n_mixing: 64

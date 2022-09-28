@@ -6,5 +6,5 @@ from .transformer import *
 
 
 __all__ = [
-    'EarthPadding', 'EnsConv2d', 'ELUKernel', 'ResidualLayer', 'T'
+    'EarthPadding', 'EnsConv2d', 'ResidualLayer', 'EnsembleTransformerLayer'
 ]
