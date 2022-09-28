@@ -27,19 +27,19 @@ logger = logging.getLogger(__name__)
 class EnsembleTransformerLayer(torch.nn.Module):
     def __init__(
             self,
-            n_embedding: int = 64,
+            n_channels: int = 64,
             n_heads: int = 64,
             n_mixin: int = 64,
             layer_scale_init_value: float = 1e-6,
     ):
         super().__init__()
         self.self_attention = EnsembleSelfAttention(
-            n_channels=n_embedding,
+            n_channels=n_channels,
             n_heads=n_heads,
             layer_scale_init_value=layer_scale_init_value
         )
         self.mixin = EnsembleMixinLayer(
-            n_channels=n_embedding,
+            n_channels=n_channels,
             n_mixin=n_mixin,
             layer_scale_init_value=layer_scale_init_value
         )
