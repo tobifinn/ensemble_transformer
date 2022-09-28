@@ -38,7 +38,7 @@ class EnsembleSelfAttention(torch.nn.Module):
         self.query_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
         self.key_layer = torch.nn.Linear(n_channels, n_heads, bias=True)
         self.out_layer = torch.nn.Linear(n_heads, n_channels, bias=True)
-        self.attention_scale = (32 * 64) ** -0.5
+        self.temperature = (32 * 64) ** -0.5
         self.gamma = torch.nn.Parameter(
             torch.full((n_channels,), layer_scale_init_value),
             requires_grad=True
@@ -57,7 +57,7 @@ class EnsembleSelfAttention(torch.nn.Module):
         dot_product = torch.einsum(
             'bihwc,bjhwc->bijc', key, query
         )
-        dot_product = dot_product * self.attention_scale
+        dot_product = dot_product * self.temperature
         attention = torch.softmax(dot_product, dim=-3)
         return attention
 
