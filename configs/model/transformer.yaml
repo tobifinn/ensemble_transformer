@@ -1,7 +1,7 @@
 defaults:
   - embedding: default
   - optimizer: adam
-  - transformer: softmax
+  - transformer: attention
 
 _recursive_: False
 _target_: ens_transformer.models.TransformerNet
