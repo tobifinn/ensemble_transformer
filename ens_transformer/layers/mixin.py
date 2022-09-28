@@ -43,13 +43,15 @@ class EnsembleMixinLayer(torch.nn.Module):
     def forward(self, in_tensor: torch.Tensor):
         residual_tensor = self.normaliser(in_tensor)
         residual_tensor = rearrange(
-            residual_tensor, pattern="bechw->behwc"
+            residual_tensor,
+            pattern="b e c h w -> b e h w c"
         )
         residual_tensor = self.layer_in(residual_tensor)
         residual_tensor = self.activation(residual_tensor)
         residual_tensor = self.layer_out(residual_tensor) * self.gamma
         residual_tensor = rearrange(
-            residual_tensor, pattern="behwc->bechw"
+            residual_tensor,
+            pattern="b e h w c -> b e c h w"
         )
         out_tensor = in_tensor + residual_tensor
         return out_tensor

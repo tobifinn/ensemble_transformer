@@ -54,7 +54,9 @@ class EnsembleSelfAttention(torch.nn.Module):
         return value_tensor, key_tensor, query_tensor
 
     def estimate_attention(self, key: torch.Tensor, query: torch.Tensor):
-        dot_product = torch.einsum('bihwc, bjhwc->bijc', key, query)
+        dot_product = torch.einsum(
+            'bihwc,bjhwc->bijc', key, query
+        )
         dot_product = dot_product * self.attention_scale
         attention = torch.softmax(dot_product, dim=-3)
         return attention
@@ -62,7 +64,8 @@ class EnsembleSelfAttention(torch.nn.Module):
     def forward(self, in_tensor):
         normalised_tensor = self.normaliser(in_tensor)
         normalised_channels_last = rearrange(
-            normalised_tensor, pattern="bechw->behwc"
+            normalised_tensor,
+            pattern="b e c h w -> b e h w c"
         )
         v_tensor, k_tensor, q_tensor = self.project_tensor(
             normalised_channels_last
@@ -72,6 +75,9 @@ class EnsembleSelfAttention(torch.nn.Module):
             'bijc,bihwc->bjhwc', attention, v_tensor
         )
         out_tensor = self.out_layer(transformed_v) * self.gamma
-        out_tensor = rearrange(out_tensor, pattern="behwc->bechw")
+        out_tensor = rearrange(
+            out_tensor,
+            pattern="b e h w c -> b e c h w"
+        )
         out_tensor = in_tensor + out_tensor
         return out_tensor
